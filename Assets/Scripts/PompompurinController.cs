@@ -26,21 +26,21 @@ public class PompompurinController : MonoBehaviour
     private bool isGrounded = true;
     private bool isDead = false;
 
-    void Start()
-    {
-        animator = GetComponent<Animator>();
-        rb = GetComponent<Rigidbody>();
-    }
+    //void Start()
+    //{
+    //    animator = GetComponent<Animator>();
+    //    rb = GetComponent<Rigidbody>();
+    //}
 
-    void Update()
-    {
-        if (isDead) return;
+    //void Update()
+    //{
+    //    if (isDead) return;
 
-        HandleMovement();
-        HandleJump();
-        HandleCombat();
-        HandleDance();
-    }
+    //    HandleMovement();
+    //    HandleJump();
+    //    HandleCombat();
+    //    HandleDance();
+    //}
 
     // ================= MOVEMENT =================
     void HandleMovement()
