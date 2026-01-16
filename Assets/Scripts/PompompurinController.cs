@@ -1,147 +1,166 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class PompompurinController : MonoBehaviour
 {
-    [Header("Movement")]
-    public float walkSpeed = 2.5f;
-    public float runSpeed = 5f;
-    public float rotationSpeed = 10f;
+    private CharacterController player;
+    private Animator pompompurinAnimator;
+    private AnimatorStateInfo stateInfo;
 
-    [Header("Key Bindings")]
-    public KeyCode moveForward = KeyCode.W;
-    public KeyCode moveBack = KeyCode.S;
-    public KeyCode moveLeft = KeyCode.A;
-    public KeyCode moveRight = KeyCode.D;
+    [SerializeField] private float speed = 2f;
+    [SerializeField] private float gravity = -9.8f;
+    [SerializeField] private float jumpForce = 4.5f;
 
-    public KeyCode jumpKey = KeyCode.Space;
-    public KeyCode danceKey = KeyCode.B;
+    public float smoothTime = 0.3f;
+    private Vector3 smoothVelocity;
 
-    [Header("Combat")]
-    public KeyCode attackKey = KeyCode.Mouse0;
-    public KeyCode comboKey = KeyCode.Mouse1;
+    private Vector3 cameraView;
+    private Vector3 velocity = Vector3.zero;
+    private Vector3 moveDirection;
+    private Vector3 verticalVelocity;
 
-    private Animator animator;
-    private Rigidbody rb;
+    private bool isDancing = false;
 
-    private bool isGrounded = true;
-    private bool isDead = false;
+    void Start()
+    {
+        pompompurinAnimator = GetComponent<Animator>();
+        player = GetComponent<CharacterController>();
+    }
 
-    //void Start()
-    //{
-    //    animator = GetComponent<Animator>();
-    //    rb = GetComponent<Rigidbody>();
-    //}
+    void Update()
+    {
+        stateInfo = pompompurinAnimator.GetCurrentAnimatorStateInfo(0);
 
-    //void Update()
-    //{
-    //    if (isDead) return;
+        HandleDanceInput();
 
-    //    HandleMovement();
-    //    HandleJump();
-    //    HandleCombat();
-    //    HandleDance();
-    //}
+        if (!isDancing)
+        {
+            HandleMovement();
+            HandleJump();
+        }
 
-    // ================= MOVEMENT =================
+        ApplyGravity();
+        UpdateAnimator();
+
+        //float v = Input.GetAxis("Vertical");
+        //float h = Input.GetAxis("Horizontal");
+
+        //cameraView = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
+        //Vector3 cameraRight = Camera.main.transform.right;
+
+        //moveDirection = cameraView * v + cameraRight * h;
+
+        //if (moveDirection.magnitude > 1f)
+        //    moveDirection.Normalize();
+
+        //player.Move(moveDirection * speed * Time.deltaTime);
+
+        //if (player.isGrounded && verticalVelocity.y < 0)
+        //    verticalVelocity.y = -2f;
+
+        //verticalVelocity.y += gravity * Time.deltaTime;
+        //player.Move(verticalVelocity * Time.deltaTime);
+
+        //if (moveDirection.magnitude > 0.1f)
+        //{
+        //    Vector3 forward = Vector3.SmoothDamp(
+        //        transform.forward,
+        //        moveDirection,
+        //        ref smoothVelocity,
+        //        smoothTime
+        //    );
+        //    transform.forward = forward;
+        //}
+
+        //pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        //pompompurinAnimator.SetFloat("Direction", h);
+    }
     void HandleMovement()
     {
-        float h = 0;
-        float v = 0;
+        
+        float v = Input.GetAxis("Vertical");
+        float h = Input.GetAxis("Horizontal");
 
-        if (Input.GetKey(moveForward)) v += 1;
-        if (Input.GetKey(moveBack)) v -= 1;
-        if (Input.GetKey(moveRight)) h += 1;
-        if (Input.GetKey(moveLeft)) h -= 1;
+        cameraView = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
+        Vector3 cameraRight = Camera.main.transform.right;
 
-        Vector3 input = new Vector3(h, 0, v).normalized;
+        moveDirection = cameraView * v + cameraRight * h;
 
-        animator.SetFloat("Speed", input.magnitude, 0.1f, Time.deltaTime);
-        animator.SetFloat("Direction", h, 0.1f, Time.deltaTime);
+        if (moveDirection.magnitude > 1f)
+            moveDirection.Normalize();
 
-        if (input.magnitude > 0.1f)
+        player.Move(moveDirection * speed * Time.deltaTime);
+
+        if (moveDirection.magnitude > 0.1f)
         {
-            transform.forward = Vector3.Lerp(
+            Vector3 forward = Vector3.SmoothDamp(
                 transform.forward,
-                input,
-                Time.deltaTime * rotationSpeed
+                moveDirection,
+                ref smoothVelocity,
+                smoothTime
             );
-
-            transform.position += transform.forward * walkSpeed * Time.deltaTime;
-        }
-        else
-        {
-            animator.SetTrigger("StopWalk");
+            transform.forward = forward;
         }
     }
 
     // ================= JUMP =================
     void HandleJump()
     {
-        if (Input.GetKeyDown(jumpKey) && isGrounded)
+        if (player.isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
-            rb.linearVelocity = new Vector3(
-                rb.linearVelocity.x,
-                7f,
-                rb.linearVelocity.z
-            );
-
-            animator.SetTrigger("Jump");
-            isGrounded = false;
+            verticalVelocity.y = jumpForce;
+            pompompurinAnimator.SetTrigger("Jump");
         }
     }
 
-    // ================= COMBAT =================
-    void HandleCombat()
+    // ================= GRAVITY =================
+    void ApplyGravity()
     {
-        if (Input.GetKeyDown(attackKey))
-        {
-            animator.SetBool("InCombat", true);
-            animator.SetTrigger("Attack1");
-        }
+        if (player.isGrounded && verticalVelocity.y < 0)
+            verticalVelocity.y = -2f;
 
-        if (Input.GetKeyDown(comboKey))
-        {
-            animator.SetTrigger("Attack2");
-        }
+        verticalVelocity.y += gravity * Time.deltaTime;
+        player.Move(verticalVelocity * Time.deltaTime);
     }
 
     // ================= DANCE =================
-    void HandleDance()
+    void HandleDanceInput()
     {
-        if (Input.GetKeyDown(danceKey))
+        if (Input.GetKeyDown(KeyCode.Q) && stateInfo.IsName("Idle"))
         {
-            animator.SetTrigger("Dance");
+            isDancing = true;
+            moveDirection = Vector3.zero;
+            pompompurinAnimator.SetTrigger("Dance");
         }
     }
 
-    // ================= EXTERNAL EVENTS =================
-    public void ReceiveHit()
+    // Llamar desde un Animation Event al final del baile
+    public void StopDance()
     {
-        animator.SetTrigger("Hit");
+        isDancing = false;
     }
 
-    public void Die()
+    // ================= ANIMATOR =================
+    void UpdateAnimator()
     {
-        isDead = true;
-        animator.SetBool("IsDead", true);
-        animator.SetTrigger("Die");
+        pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
     }
 
-    // ================= COLLISION =================
-    void OnCollisionEnter(Collision collision)
+
+    public void CalibrateForward()
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-            animator.SetBool("IsGrounded", true);
-        }
+        Debug.Log("Calibrando forward");
+        transform.forward = cameraView;
     }
 
-    void OnCollisionExit(Collision collision)
+    public void SmoothForward()
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            animator.SetBool("IsGrounded", false);
-        }
+        Debug.Log("Suavizando forward");
+        transform.forward = Vector3.SmoothDamp(transform.forward,
+                                                   cameraView,
+                                                   ref velocity,
+                                                   smoothTime);
     }
 }
