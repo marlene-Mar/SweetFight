@@ -176,7 +176,7 @@ public class UIManager : MonoBehaviour
         {
             // Regresa al juego
             Configuracion.SetActive(false);
-            PausaPanel.SetActive(false);
+            PausaPanel.SetActive(true);
             HudPanel.SetActive(true);
 
             Time.timeScale = 1f;
