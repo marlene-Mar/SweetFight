@@ -201,11 +201,6 @@ public class UIManager : MonoBehaviour
 
     public void ReanudarJuego()
     {
-        //PausaPanel.SetActive(false);
-        //HudPanel.SetActive(true);
-
-        //Time.timeScale = 1f;
-        //isPaused = false;
         PausaPanel.SetActive(false);
         HudPanel.SetActive(true);
         Time.timeScale = 1f;
@@ -214,6 +209,10 @@ public class UIManager : MonoBehaviour
     public void GuardarYSalir()
     {
         Debug.Log("Guardado");
+        PausaPanel.SetActive(false); 
+        HudPanel.SetActive(false);
+        MenuPrincipal.SetActive(true);
+        Salir();
     }
 
 }
