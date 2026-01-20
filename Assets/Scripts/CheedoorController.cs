@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System;
 
 public class CheedoorController : MonoBehaviour
 {
     private NavMeshAgent agent;
     private GameObject player;
     private Animator agentAnimator;
+
+    public Action OnDeath;
 
     void Start()
     {
@@ -16,7 +19,17 @@ public class CheedoorController : MonoBehaviour
 
     void Update()
     {
+        if (player == null) return;
+
         agent.SetDestination(player.transform.position);
-        agentAnimator.SetFloat("Speed", agent.velocity.sqrMagnitude);
+
+        float speed = agent.velocity.magnitude;
+        agentAnimator.SetFloat("Speed", speed);
+    }
+
+    public void Die()
+    {
+        OnDeath?.Invoke();
+        Destroy(gameObject);
     }
 }
