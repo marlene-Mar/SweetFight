@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -24,6 +25,12 @@ public class UIManager : MonoBehaviour
     // ==============================
     public GameObject HudPanel;
     public GameObject PausaPanel;
+    public Image barraVidaP;
+    public Image barraCandyCoins;
+    public Image barraVidaC;
+    public Image vida1Cheedor;
+    public Image vida2Cheedor;
+    public Image vida3Cheedor;
     private bool isPaused = false;
 
     private ConfigSource configSource;
