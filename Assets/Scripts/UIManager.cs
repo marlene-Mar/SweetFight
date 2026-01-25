@@ -8,6 +8,8 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
+    private GameManager gameManager;
+
     // ==============================
     // Menú principal
     // ==============================
@@ -66,6 +68,9 @@ public class UIManager : MonoBehaviour
 
         HudPanel.SetActive(false);
         PausaPanel.SetActive(false);
+
+        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
 
         Time.timeScale = 0f; 
     }
@@ -149,6 +154,7 @@ public class UIManager : MonoBehaviour
         HudPanel.SetActive(true); //Muestra el HUD
         PausaPanel.SetActive(false);
 
+        gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
         Time.timeScale = 1f;
     }
 
@@ -162,6 +168,7 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Regresando al menú principal");
         ShowMenuPanel(MenuPrincipal);
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
     }
 
     public void AbrirConfiguracionDesdeJuego()
@@ -201,15 +208,17 @@ public class UIManager : MonoBehaviour
     public void PausarJuego()
     {
         if (PausaPanel.activeSelf) return;
-
         PausaPanel.SetActive(true);
+        gameManager.PlayMusicByState(GameManager.GameState.Pausa);
         Time.timeScale = 0f;
+        
     }
 
     public void ReanudarJuego()
     {
         PausaPanel.SetActive(false);
         HudPanel.SetActive(true);
+        gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
         Time.timeScale = 1f;
     }
 
@@ -219,6 +228,7 @@ public class UIManager : MonoBehaviour
         PausaPanel.SetActive(false); 
         HudPanel.SetActive(false);
         MenuPrincipal.SetActive(true);
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
         Salir();
     }
 
