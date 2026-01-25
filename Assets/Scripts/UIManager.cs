@@ -78,7 +78,6 @@ public class UIManager : MonoBehaviour
         gameManager = FindFirstObjectByType<GameManager>();
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
 
-        // Inicializar textos de audio
         if (musicLevelText != null) musicLevelText.text = musicLevel.ToString();
         if (sfxLevelText != null) sfxLevelText.text = sfxLevel.ToString();
 
@@ -254,7 +253,6 @@ public class UIManager : MonoBehaviour
         musicLevel = Mathf.Clamp(musicLevel + amount, 0, 10);
         if (musicLevelText != null) musicLevelText.text = musicLevel.ToString();
 
-        // El valor se divide entre 10 para dar un rango de 0.0001 a 1 al Mixer
         float volumeNormalized = Mathf.Max(musicLevel / 10f, 0.0001f);
         gameManager.Musicvolume(LinearToLog(volumeNormalized));
     }
