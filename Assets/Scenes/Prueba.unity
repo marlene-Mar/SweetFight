@@ -381,6 +381,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 865436f78a429c649a2d2476a2032e37, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1658839239}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 865436f78a429c649a2d2476a2032e37, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1658839242}
   m_SourcePrefab: {fileID: 100100000, guid: 865436f78a429c649a2d2476a2032e37, type: 3}
 --- !u!1 &961739749
 GameObject:
@@ -765,6 +768,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.15, y: 1, z: 1}
   m_Center: {x: 0.05, y: 0.5, z: 0.2}
+--- !u!114 &1658839242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658839236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf4cd5f2f3292b347bb7bd5e179951a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CheedoorController
+  damage: 0
+  maxHealth: 50
+  isAttacking: 0
 --- !u!1001 &1704499349
 PrefabInstance:
   m_ObjectHideFlags: 0
