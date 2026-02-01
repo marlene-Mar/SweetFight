@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
+    private GameManager gameManager;
 
     // ==============================
     // Menú principal
@@ -33,6 +35,14 @@ public class UIManager : MonoBehaviour
     public Image vida3Cheedor;
     private bool isPaused = false;
 
+    // ==============================
+    // AUDIO
+    // ==============================
+    public TextMeshProUGUI musicLevelText;
+    public TextMeshProUGUI sfxLevelText;
+    private int musicLevel = 5;
+    private int sfxLevel = 5;
+
     private ConfigSource configSource;
 
     public enum ConfigSource
@@ -44,10 +54,8 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     private void Start()
@@ -67,6 +75,13 @@ public class UIManager : MonoBehaviour
         HudPanel.SetActive(false);
         PausaPanel.SetActive(false);
 
+        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
+
+        if (musicLevelText != null) musicLevelText.text = musicLevel.ToString();
+        if (sfxLevelText != null) sfxLevelText.text = sfxLevel.ToString();
+
+
         Time.timeScale = 0f; 
     }
 
@@ -77,7 +92,6 @@ public class UIManager : MonoBehaviour
             Keyboard.current != null &&
             Keyboard.current.enterKey.wasPressedThisFrame)
         {
-            Debug.Log("Enter detectado");
             GoToMenuPrincipal();
         }
     }
@@ -149,6 +163,7 @@ public class UIManager : MonoBehaviour
         HudPanel.SetActive(true); //Muestra el HUD
         PausaPanel.SetActive(false);
 
+        gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
         Time.timeScale = 1f;
     }
 
@@ -162,6 +177,7 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Regresando al menú principal");
         ShowMenuPanel(MenuPrincipal);
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
     }
 
     public void AbrirConfiguracionDesdeJuego()
@@ -201,15 +217,17 @@ public class UIManager : MonoBehaviour
     public void PausarJuego()
     {
         if (PausaPanel.activeSelf) return;
-
         PausaPanel.SetActive(true);
+        gameManager.PlayMusicByState(GameManager.GameState.Pausa);
         Time.timeScale = 0f;
+        
     }
 
     public void ReanudarJuego()
     {
         PausaPanel.SetActive(false);
         HudPanel.SetActive(true);
+        gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
         Time.timeScale = 1f;
     }
 
@@ -219,7 +237,38 @@ public class UIManager : MonoBehaviour
         PausaPanel.SetActive(false); 
         HudPanel.SetActive(false);
         MenuPrincipal.SetActive(true);
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
         Salir();
+    }
+
+    // =========AUDIO=========
+
+    public void IncreaseMusic() => ChangeMusicVolume(1);
+    public void DecreaseMusic() => ChangeMusicVolume(-1);
+    public void IncreaseSFX() => ChangeSFXVolume(1);
+    public void DecreaseSFX() => ChangeSFXVolume(-1);
+
+    private void ChangeMusicVolume(int amount)
+    {
+        musicLevel = Mathf.Clamp(musicLevel + amount, 0, 10);
+        if (musicLevelText != null) musicLevelText.text = musicLevel.ToString();
+
+        float volumeNormalized = Mathf.Max(musicLevel / 10f, 0.0001f);
+        gameManager.Musicvolume(LinearToLog(volumeNormalized));
+    }
+
+    private void ChangeSFXVolume(int amount)
+    {
+        sfxLevel = Mathf.Clamp(sfxLevel + amount, 0, 10);
+        if (sfxLevelText != null) sfxLevelText.text = sfxLevel.ToString();
+
+        float volumeNormalized = Mathf.Max(sfxLevel / 10f, 0.0001f);
+        gameManager.SFXVolume(LinearToLog(volumeNormalized));
+    }
+
+    private float LinearToLog(float value)
+    {
+        return Mathf.Log10(value) * 20;
     }
 
 }
