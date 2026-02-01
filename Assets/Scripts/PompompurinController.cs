@@ -48,6 +48,8 @@ public class PompompurinController : MonoBehaviour
         HandleDanceInput();
         HandleAttackInput();
 
+        moveDirection = Vector3.zero;
+
         if (!isDancing)
         {
             HandleMovement();
@@ -55,8 +57,8 @@ public class PompompurinController : MonoBehaviour
         }
 
         ApplyGravity();
-        UpdateAnimator();
 
+        UpdateAnimator();
         DetectCombat();
 
     }
@@ -104,9 +106,9 @@ public class PompompurinController : MonoBehaviour
     {
         if (player.isGrounded && verticalVelocity.y < 0)
             verticalVelocity.y = -2f;
-
-        verticalVelocity.y += gravity * Time.deltaTime;
-        player.Move(verticalVelocity * Time.deltaTime);
+        else
+            verticalVelocity.y += gravity * Time.deltaTime;
+        //player.Move(verticalVelocity * Time.deltaTime);
     }
     // ================= ATTACK =================
     void DetectCombat()
