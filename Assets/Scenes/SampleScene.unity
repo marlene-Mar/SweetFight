@@ -4006,7 +4006,7 @@ GameObject:
   - component: {fileID: 350627615}
   - component: {fileID: 350627614}
   m_Layer: 5
-  m_Name: VolAudio
+  m_Name: MusicVolume
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11083,7 +11083,7 @@ GameObject:
   - component: {fileID: 1119590462}
   - component: {fileID: 1119590461}
   m_Layer: 5
-  m_Name: VolSFX
+  m_Name: SFXVolume
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
