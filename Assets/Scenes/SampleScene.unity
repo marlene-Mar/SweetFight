@@ -858,7 +858,7 @@ MonoBehaviour:
     Enabled: 1
     ObstacleLayers:
       serializedVersion: 2
-      m_Bits: 1
+      m_Bits: 4294967295
     UseFollowTarget:
       Enabled: 0
       YOffset: 0
@@ -868,7 +868,7 @@ MonoBehaviour:
     Enabled: 1
     TerrainLayers:
       serializedVersion: 2
-      m_Bits: 1
+      m_Bits: 4294967295
     MaximumRaycast: 10
     Damping: 0.5
 --- !u!4 &71242455 stripped
@@ -2480,7 +2480,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4514200820076054894, guid: 446f25df273186541b0a3f24e5c3c735, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4514200820076054894, guid: 446f25df273186541b0a3f24e5c3c735, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -6899,7 +6899,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &654223719
 RectTransform:
   m_ObjectHideFlags: 0
