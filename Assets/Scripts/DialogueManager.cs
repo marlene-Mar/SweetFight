@@ -1,0 +1,203 @@
+using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro; // Importante para que funcione
+
+public class DialogueManager : MonoBehaviour
+{
+    [Header("UI References")]
+    public GameObject dialoguePanel;
+    public TextMeshProUGUI dialogueText; // Cambiado a TextMeshProUGUI
+    public GameObject responseButtonsPanel;
+    public Button responseButton;
+
+    [Header("Configuración")]
+    public float textSpeed = 0.05f;
+
+    private GuardianController currentGuardian;
+    private int currentDialogueIndex = 0;
+    private bool isTyping = false;
+
+    [System.Serializable]
+    public class DialogueLine
+    {
+        public string speaker;
+        public string text;
+        public bool requiresPlayerResponse;
+        public string responseButtonText;
+    }
+
+    private List<DialogueLine> guardianConversation = new List<DialogueLine>()
+    {
+        new DialogueLine
+        {
+            speaker = "Guardian",
+            text = "Hola, escuché que había un desconocido, te estaba buscando.",
+            requiresPlayerResponse = true,
+            responseButtonText = "Hola, soy Pompompurin. Vengo en búsqueda de Camemi"
+        },
+        new DialogueLine
+        {
+            speaker = "Guardian",
+            text = "Esa rata astuta, está asustando a los habitantes, no puedo derrotarlo solo.",
+            requiresPlayerResponse = true,
+            responseButtonText = "Vengo a derrotarlo"
+        },
+        new DialogueLine
+        {
+            speaker = "Guardian",
+            text = "JAJA, ¿Tú?, si te ves más adorable que yo. Te ayudaré si me derrotas.",
+            requiresPlayerResponse = true,
+            responseButtonText = "¡Hecho!"
+        }
+    };
+
+    void Start()
+    {
+        if (dialoguePanel != null)
+            dialoguePanel.SetActive(false);
+
+        if (responseButtonsPanel != null)
+            responseButtonsPanel.SetActive(false);
+    }
+
+    public void StartGuardianDialogue(GuardianController guardian)
+    {
+        currentGuardian = guardian;
+        currentDialogueIndex = 0;
+
+        if (dialoguePanel != null)
+            dialoguePanel.SetActive(true);
+
+        DisablePlayerControls();
+        DisplayNextLine();
+    }
+
+    void DisplayNextLine()
+    {
+        if (currentDialogueIndex >= guardianConversation.Count)
+        {
+            EndDialogue();
+            return;
+        }
+
+        DialogueLine currentLine = guardianConversation[currentDialogueIndex];
+
+        StopAllCoroutines();
+        StartCoroutine(TypeText(currentLine.text));
+
+        if (currentLine.requiresPlayerResponse)
+        {
+            SetupResponseButton(currentLine.responseButtonText);
+        }
+        else
+        {
+            if (responseButtonsPanel != null)
+                responseButtonsPanel.SetActive(false);
+        }
+    }
+
+    IEnumerator TypeText(string text)
+    {
+        isTyping = true;
+        dialogueText.text = "";
+
+        foreach (char letter in text.ToCharArray())
+        {
+            dialogueText.text += letter;
+            yield return new WaitForSeconds(textSpeed);
+        }
+
+        isTyping = false;
+    }
+
+    void SetupResponseButton(string buttonText)
+    {
+        if (responseButtonsPanel != null)
+            responseButtonsPanel.SetActive(true);
+
+        if (responseButton != null)
+        {
+            // Cambiado: Ahora busca TextMeshProUGUI en lugar de Text
+            TextMeshProUGUI buttonTextComponent = responseButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonTextComponent != null)
+                buttonTextComponent.text = buttonText;
+
+            responseButton.onClick.RemoveAllListeners();
+            responseButton.onClick.AddListener(OnResponseButtonClicked);
+        }
+    }
+
+    public void OnResponseButtonClicked()
+    {
+        if (isTyping)
+        {
+            StopAllCoroutines();
+            dialogueText.text = guardianConversation[currentDialogueIndex].text;
+            isTyping = false;
+            return;
+        }
+
+        currentDialogueIndex++;
+
+        if (currentDialogueIndex >= guardianConversation.Count)
+        {
+            EndDialogue();
+            StartCombat();
+        }
+        else
+        {
+            DisplayNextLine();
+        }
+    }
+
+    void EndDialogue()
+    {
+        if (dialoguePanel != null)
+            dialoguePanel.SetActive(false);
+
+        if (responseButtonsPanel != null)
+            responseButtonsPanel.SetActive(false);
+    }
+
+    void StartCombat()
+    {
+        EnablePlayerControls();
+        if (currentGuardian != null)
+        {
+            currentGuardian.StartCombat();
+        }
+    }
+
+    void DisablePlayerControls()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            MonoBehaviour[] scripts = player.GetComponents<MonoBehaviour>();
+            foreach (var script in scripts)
+            {
+                if (script.GetType().Name.Contains("Player") ||
+                    script.GetType().Name.Contains("Movement") ||
+                    script.GetType().Name.Contains("Controller"))
+                {
+                    script.enabled = false;
+                }
+            }
+        }
+    }
+
+    void EnablePlayerControls()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            PompompurinController pompompurin = player.GetComponent<PompompurinController>();
+            if (pompompurin != null)
+            {
+                pompompurin.enabled = true;
+            }
+        }
+    }
+}

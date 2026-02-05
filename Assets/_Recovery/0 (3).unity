@@ -1828,10 +1828,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 865436f78a429c649a2d2476a2032e37, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1219826727992347753, guid: 865436f78a429c649a2d2476a2032e37, type: 3}
       propertyPath: m_Layer
       value: 3
@@ -4623,7 +4619,7 @@ MonoBehaviour:
   spawnRadius: 150
   walkableLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   showGizmos: 1
   gizmoColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &410087039
@@ -4992,18 +4988,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
   m_PrefabInstance: {fileID: 770978793}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &439080075
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 439080068}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e66c9afa4bfb0c4580016852f146c24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlanCollection
 --- !u!1 &439296027
 GameObject:
   m_ObjectHideFlags: 0
@@ -9424,9 +9408,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 439080071}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 439080075}
     - targetCorrespondingSourceObject: {fileID: -4728426434207774260, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1444064633}
@@ -9997,10 +9978,6 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 797dfc83c53cdca4aa05cffe84f120e2, type: 3}
       propertyPath: m_IsActive
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 797dfc83c53cdca4aa05cffe84f120e2, type: 3}
-      propertyPath: m_TagString
-      value: Flan
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 797dfc83c53cdca4aa05cffe84f120e2, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -21444,7 +21421,7 @@ MonoBehaviour:
   spawnRadius: 20
   walkableLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   showGizmos: 1
   gizmoColor: {r: 0.6996276, g: 0.35283017, b: 1, a: 1}
 --- !u!1001 &1764961864

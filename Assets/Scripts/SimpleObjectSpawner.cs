@@ -69,8 +69,4 @@ public class SimpleObjectSpawner : MonoBehaviour
         return false;
     }
 
-    public void FlanDestroyed()
-    {
-        currentFlans--;
-    }
 }
