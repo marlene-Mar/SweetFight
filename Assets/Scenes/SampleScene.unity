@@ -2684,7 +2684,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 71.4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2798,6 +2798,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1082271958561512970, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -2848,12 +2852,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
       addedObject: {fileID: 398856610}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 398856613}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 398856616}
   m_SourcePrefab: {fileID: 100100000, guid: 8374e12f18f28664781e79de0926e693, type: 3}
 --- !u!1001 &228159148
 PrefabInstance:
@@ -4586,46 +4584,6 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &398856613
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 398856606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6da1b095c7fffc45accd8222294594d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GuardianController
-  patrolPoints: []
-  patrolWaitTime: 2
-  detectionRadius: 5
-  player: {fileID: 439080074}
-  currentState: 0
-  walkAnimationName: Walk
-  greetAnimationName: Hi
-  attackAnimationName: Attack
-  idleAnimationName: Idle
---- !u!114 &398856616
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 398856606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fae4200a94bafb4c849ad077428d52e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PatrolPointsGenerator
-  numberOfPoints: 3
-  spawnRadius: 150
-  walkableLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  showGizmos: 1
-  gizmoColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -21387,6 +21345,7 @@ GameObject:
   - component: {fileID: 1749802353}
   - component: {fileID: 1749802354}
   - component: {fileID: 1749802355}
+  - component: {fileID: 1749802356}
   m_Layer: 0
   m_Name: Spawn
   m_TagString: Untagged
@@ -21447,6 +21406,33 @@ MonoBehaviour:
     m_Bits: 64
   showGizmos: 1
   gizmoColor: {r: 0.6996276, g: 0.35283017, b: 1, a: 1}
+--- !u!114 &1749802356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1749802352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83911b924b241ff40921df6257d3116f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuardianSpawner
+  guardianPrefab: {fileID: 398856606}
+  numberOfGuardians: 2
+  numberOfSpawnPoints: 4
+  spawnAreaRadius: 100
+  minDistanceBetweenGuardians: 70
+  walkableLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  patrolPointsPerGuardian: 3
+  patrolRadius: 15
+  showGizmos: 1
+  spawnPointsColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  guardian1Color: {r: 0.627451, g: 0.1254902, b: 0.9411765, a: 1}
+  guardian2Color: {r: 0.8156863, g: 0.1254902, b: 0.5647059, a: 1}
+  patrolPointsColor: {r: 1, g: 0.5490196, b: 0, a: 1}
 --- !u!1001 &1764961864
 PrefabInstance:
   m_ObjectHideFlags: 0

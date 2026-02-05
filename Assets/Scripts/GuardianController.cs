@@ -3,31 +3,25 @@ using UnityEngine.AI;
 
 public class GuardianController : MonoBehaviour
 {
-    [Header("Patrullaje")]
-    public Transform[] patrolPoints; // 3 posiciones de patrullaje
-    private int currentPatrolIndex = 0;
-    public float patrolWaitTime = 2f;
-    private float patrolTimer = 0f;
+    public GameObject guardianPrefab;
 
     [Header("Detección")]
     public float detectionRadius = 5f;
     public Transform player;
     private bool hasMetPlayer = false;
 
-    [Header("Componentes")]
-    private NavMeshAgent navAgent;
     private Animator animator;
 
     public enum GuardianState
     {
-        Patrolling,
+        Walk,
         Greeting,
         Dialogue,
         Combat
     }
 
     [Header("Estado Actual")]
-    public GuardianState currentState = GuardianState.Patrolling;
+    public GuardianState currentState = GuardianState.Walk;
 
     [Header("Animaciones")]
     public string walkAnimationName = "Walk";
