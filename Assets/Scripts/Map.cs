@@ -8,4 +8,5 @@ public class Map : MonoBehaviour
     {
         transform.Rotate(Vector3.right * velocidad * Time.deltaTime);
     }
+
 }

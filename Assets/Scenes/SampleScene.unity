@@ -840,7 +840,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 69318009}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.07459312, y: -0.0030409677, z: 0.00022747, w: 0.9972094}
+  m_LocalRotation: {x: 0.07459247, y: -0.005129685, z: 0.00038370996, w: 0.99720085}
   m_LocalPosition: {x: -1.811, y: -1.025471, z: -104.48743}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2852,6 +2852,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
       addedObject: {fileID: 398856610}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 398856613}
   m_SourcePrefab: {fileID: 100100000, guid: 8374e12f18f28664781e79de0926e693, type: 3}
 --- !u!1001 &228159148
 PrefabInstance:
@@ -3886,7 +3889,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.074593134, y: -0.0030409682, z: 0.0002274701, w: 0.9972094}
+  m_LocalRotation: {x: 0.07459247, y: -0.005129685, z: 0.00038371, w: 0.99720085}
   m_LocalPosition: {x: -1.811, y: -1.025471, z: -104.48743}
   m_LocalScale: {x: 1, y: 1, z: 0.66755}
   m_ConstrainProportionsScale: 0
@@ -4584,6 +4587,28 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &398856613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398856606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6da1b095c7fffc45accd8222294594d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuardianController
+  guardianPrefab: {fileID: 398856606}
+  patrolPoints: []
+  patrolWaitTime: 2
+  detectionRadius: 5
+  player: {fileID: 439080074}
+  currentState: 0
+  walkAnimationName: Walk
+  greetAnimationName: Greet
+  attackAnimationName: Attack
+  idleAnimationName: Idle
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -5764,7 +5789,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: 295}
+  m_AnchoredPosition: {x: 0, y: 295}
   m_SizeDelta: {x: 414.9644, y: 108.321}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &548311763
@@ -6264,7 +6289,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -6281,7 +6306,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 330585545}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -8382,7 +8407,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: 295}
+  m_AnchoredPosition: {x: 0, y: 295}
   m_SizeDelta: {x: 414.9644, y: 108.321}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &720647323
@@ -8733,7 +8758,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -9.728, y: -19.421}
+  m_AnchoredPosition: {x: -9.727997, y: -19.420998}
   m_SizeDelta: {x: -19.4561, y: -38.842}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &730378681
@@ -11836,7 +11861,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -55, y: -0}
+  m_AnchoredPosition: {x: -55, y: 0}
   m_SizeDelta: {x: 75, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1074180081
@@ -12220,7 +12245,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -9.728, y: -19.421}
+  m_AnchoredPosition: {x: -9.727997, y: -19.420998}
   m_SizeDelta: {x: -19.4561, y: -38.842}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1113500973
@@ -13983,7 +14008,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -767.55786, y: 447.20752}
+  m_AnchoredPosition: {x: -767.5579, y: 447.20752}
   m_SizeDelta: {x: -1535.1155, y: -894.42}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1237371899
@@ -21384,6 +21409,7 @@ MonoBehaviour:
   validSurfaces:
   - {fileID: 1371803073}
   - {fileID: 931457697}
+  - {fileID: 2001895299}
   maxFlanes: 15
   maxSlopeAngle: 40
   groundOffset: 0.3
@@ -21419,20 +21445,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GuardianSpawner
   guardianPrefab: {fileID: 398856606}
+  validSurfaces:
+  - {fileID: 931457697}
+  - {fileID: 1371803073}
+  - {fileID: 2001895299}
+  maxSlopeAngle: 30
+  groundOffset: 0.1
   numberOfGuardians: 2
-  numberOfSpawnPoints: 4
-  spawnAreaRadius: 100
   minDistanceBetweenGuardians: 70
-  walkableLayer:
-    serializedVersion: 2
-    m_Bits: 0
+  maxSpawnAttempts: 100
   patrolPointsPerGuardian: 3
   patrolRadius: 15
+  maxPatrolAttempts: 30
   showGizmos: 1
-  spawnPointsColor: {r: 1, g: 0.8431373, b: 0, a: 1}
   guardian1Color: {r: 0.627451, g: 0.1254902, b: 0.9411765, a: 1}
   guardian2Color: {r: 0.8156863, g: 0.1254902, b: 0.5647059, a: 1}
-  patrolPointsColor: {r: 1, g: 0.5490196, b: 0, a: 1}
 --- !u!1001 &1764961864
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22009,7 +22036,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -849.5422, y: -475.41}
+  m_AnchoredPosition: {x: -849.5422, y: -475.41003}
   m_SizeDelta: {x: -1699.0844, y: -957.24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1841946196
@@ -24360,7 +24387,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
   dialoguePanel: {fileID: 1059996685}
-  dialogueText: {fileID: 0}
+  dialogueText: {fileID: 1050310416}
   responseButtonsPanel: {fileID: 914492161}
   responseButton: {fileID: 2027215483}
   textSpeed: 0.05
@@ -24464,7 +24491,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: 295}
+  m_AnchoredPosition: {x: 0, y: 295}
   m_SizeDelta: {x: 414.9644, y: 108.321}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2136180504
@@ -24601,7 +24628,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -190, y: -0}
+  m_AnchoredPosition: {x: -190, y: 0}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2136314710

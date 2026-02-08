@@ -3,183 +3,168 @@ using UnityEngine.AI;
 
 public class GuardianController : MonoBehaviour
 {
-    public GameObject guardianPrefab;
-
-    [Header("Detección")]
-    public float detectionRadius = 5f;
     public Transform player;
-    private bool hasMetPlayer = false;
+    public float minPatrolDistance = 15f;
+    public float maxPatrolDistance = 40f;
+    public float patrolSearchRadius = 60f;
+    public float distanceToGreet = 5f;
+    public float greetDuration = 3f;
 
+    private NavMeshAgent navAgent;
     private Animator animator;
 
-    public enum GuardianState
+    private bool isInitialized = false;
+    private bool isGreeting = false;
+
+    private enum GuardianState
     {
-        Walk,
-        Greeting,
-        Dialogue,
-        Combat
+        Patrolling,
+        Greeting
     }
 
-    [Header("Estado Actual")]
-    public GuardianState currentState = GuardianState.Walk;
+    private GuardianState currentState;
 
-    [Header("Animaciones")]
-    public string walkAnimationName = "Walk";
-    public string greetAnimationName = "Greet";
-    public string attackAnimationName = "Attack";
-    public string idleAnimationName = "Idle";
-
-    void Start()
+    void Awake()
     {
         navAgent = GetComponent<NavMeshAgent>();
+        navAgent.speed = 2.0f;
         animator = GetComponent<Animator>();
 
-        // Si no tienes referencia al jugador, búscalo
-        if (player == null)
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-                player = playerObj.transform;
-        }
-
-        // Comenzar patrullaje
-        if (patrolPoints.Length > 0)
-        {
-            GoToNextPatrolPoint();
-        }
+        navAgent.enabled = false;
     }
 
     void Update()
     {
+        if (!isInitialized)
+        {
+            TryInitialize();
+            return;
+        }
+
         switch (currentState)
         {
             case GuardianState.Patrolling:
-                UpdatePatrol();
                 CheckPlayerDistance();
+                CheckIfReachedDestination();
                 break;
 
             case GuardianState.Greeting:
-                // El estado de saludo se maneja por evento de animación
-                break;
-
-            case GuardianState.Dialogue:
-                // El diálogo se maneja desde DialogueManager
-                break;
-
-            case GuardianState.Combat:
-                // El combate se maneja desde CombatManager
+                LookAtPlayer();
                 break;
         }
 
         UpdateAnimations();
     }
 
-    void UpdatePatrol()
+    public void Initialize(MeshCollider[] surfaces, Transform playerTransform)
     {
-        if (patrolPoints.Length == 0) return;
+        player = playerTransform;
+    }
 
-        // Verificar si llegó al punto de patrullaje
-        if (!navAgent.pathPending && navAgent.remainingDistance <= navAgent.stoppingDistance)
+    void TryInitialize()
+    {
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(transform.position, out hit, 5f, NavMesh.AllAreas))
         {
-            patrolTimer += Time.deltaTime;
+            transform.position = hit.position;
+            navAgent.enabled = true;
 
-            if (patrolTimer >= patrolWaitTime)
+            isInitialized = true;
+            StartPatrolling();
+
+            Debug.Log($"✓ {gameObject.name} listo para recorrer el mapa completo");
+        }
+    }
+
+    void StartPatrolling()
+    {
+        currentState = GuardianState.Patrolling;
+        GoToRandomNavMeshPoint();
+    }
+
+    void GoToRandomNavMeshPoint()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            Vector3 randomDirection = Random.insideUnitSphere * patrolSearchRadius;
+            randomDirection += transform.position;
+
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(randomDirection, out hit, patrolSearchRadius, NavMesh.AllAreas))
             {
-                GoToNextPatrolPoint();
-                patrolTimer = 0f;
+                float distance = Vector3.Distance(transform.position, hit.position);
+
+                if (distance >= minPatrolDistance && distance <= maxPatrolDistance)
+                {
+                    navAgent.isStopped = false;
+                    navAgent.SetDestination(hit.position);
+                    return;
+                }
             }
         }
     }
 
-    void GoToNextPatrolPoint()
+    void CheckIfReachedDestination()
     {
-        if (patrolPoints.Length == 0) return;
-
-        navAgent.SetDestination(patrolPoints[currentPatrolIndex].position);
-        currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
+        if (!navAgent.pathPending && navAgent.remainingDistance < 1.5f)
+        {
+            GoToRandomNavMeshPoint();
+        }
     }
 
     void CheckPlayerDistance()
     {
-        if (player == null || hasMetPlayer) return;
+        if (player == null || isGreeting) return;
 
         float distance = Vector3.Distance(transform.position, player.position);
 
-        if (distance <= detectionRadius)
+        if (distance <= distanceToGreet)
         {
-            OnPlayerDetected();
+            StartGreeting();
         }
     }
 
-    void OnPlayerDetected()
+    void StartGreeting()
     {
-        hasMetPlayer = true;
+        isGreeting = true;
         currentState = GuardianState.Greeting;
 
-        // Detener movimiento
         navAgent.isStopped = true;
+        navAgent.ResetPath();
 
-        // Mirar al jugador
-        Vector3 directionToPlayer = player.position - transform.position;
-        directionToPlayer.y = 0;
-        transform.rotation = Quaternion.LookRotation(directionToPlayer);
-
-        // Ejecutar animación de saludo
         if (animator != null)
-        {
-            animator.SetTrigger(greetAnimationName);
-        }
+            animator.SetTrigger("Greet");
 
-        // Esperar un momento y abrir diálogo
-        Invoke(nameof(StartDialogue), 1.5f);
+        Invoke(nameof(ReturnToPatrol), greetDuration);
     }
 
-    void StartDialogue()
+    void ReturnToPatrol()
     {
-        currentState = GuardianState.Dialogue;
-
-        // Notificar al DialogueManager
-        DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
-        if (dialogueManager != null)
-        {
-            dialogueManager.StartGuardianDialogue(this);
-        }
+        isGreeting = false;
+        currentState = GuardianState.Patrolling;
+        GoToRandomNavMeshPoint();
     }
 
-    public void StartCombat()
+    void LookAtPlayer()
     {
-        currentState = GuardianState.Combat;
+        if (player == null) return;
 
-        // Ejecutar animación de ataque
-        if (animator != null)
-        {
-            animator.SetTrigger(attackAnimationName);
-        }
+        Vector3 direction = player.position - transform.position;
+        direction.y = 0;
 
-        // Notificar al sistema de combate
-        CombatManager combatManager = FindObjectOfType<CombatManager>();
-        if (combatManager != null)
+        if (direction != Vector3.zero)
         {
-            combatManager.StartCombat(this);
+            Quaternion lookRot = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, Time.deltaTime * 5f);
         }
     }
 
     void UpdateAnimations()
     {
-        if (animator == null) return;
+        if (animator == null || !navAgent.enabled) return;
 
-        // Establecer velocidad para animación de caminar
         float speed = navAgent.velocity.magnitude;
         animator.SetFloat("Speed", speed);
-
-        // Alternativamente, usar booleanos
-        animator.SetBool("IsWalking", speed > 0.1f);
-    }
-
-    // Para visualizar el radio de detección en el editor
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        animator.SetBool("Walk", speed > 0.1f);
     }
 }

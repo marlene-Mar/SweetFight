@@ -2,13 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro; // Importante para que funcione
+using TMPro; 
 
 public class DialogueManager : MonoBehaviour
 {
     [Header("UI References")]
     public GameObject dialoguePanel;
-    public TextMeshProUGUI dialogueText; // Cambiado a TextMeshProUGUI
+    public TextMeshProUGUI dialogueText; 
     public GameObject responseButtonsPanel;
     public Button responseButton;
 
@@ -119,7 +119,6 @@ public class DialogueManager : MonoBehaviour
 
         if (responseButton != null)
         {
-            // Cambiado: Ahora busca TextMeshProUGUI en lugar de Text
             TextMeshProUGUI buttonTextComponent = responseButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonTextComponent != null)
                 buttonTextComponent.text = buttonText;
@@ -163,11 +162,11 @@ public class DialogueManager : MonoBehaviour
 
     void StartCombat()
     {
-        EnablePlayerControls();
-        if (currentGuardian != null)
-        {
-            currentGuardian.StartCombat();
-        }
+        //EnablePlayerControls();
+        //if (currentGuardian != null)
+        //{
+        //    currentGuardian.StartCombat();
+        //}
     }
 
     void DisablePlayerControls()
