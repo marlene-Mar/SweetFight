@@ -1,13 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 public class PompompurinController : MonoBehaviour
 {
     private CharacterController player;
     private Animator pompompurinAnimator;
-    private AnimatorStateInfo stateInfo;
 
     [SerializeField] private float speed = 2f;
     [SerializeField] private float gravity = -9.8f;
@@ -16,57 +14,53 @@ public class PompompurinController : MonoBehaviour
     public float smoothTime = 0.3f;
     private Vector3 smoothVelocity;
 
-    private Vector3 cameraView;
-    private Vector3 velocity = Vector3.zero;
     private Vector3 moveDirection;
     private Vector3 verticalVelocity;
+    private Vector3 cameraView;
 
     private bool isInDialogue = false;
     private bool isDancing = false;
+    private bool isWaitingCombat = false;
 
     public Collider[] manoColliders;
-    public int damageGolpe1 = 15;
-    public int damageGolpe2 = 20;
+
+    public int damageGolpe1 = 10;
+    public int damageGolpe2 = 15;
+
     public float combatRange = 2.0f;
     public LayerMask enemyLayer;
+
     public bool inCombat = false;
-
     public bool isAttacking = false;
-    private int currentDamage;
 
+    private int currentDamage;
 
     void Start()
     {
         pompompurinAnimator = GetComponent<Animator>();
         player = GetComponent<CharacterController>();
-
     }
 
     void Update()
     {
-        stateInfo = pompompurinAnimator.GetCurrentAnimatorStateInfo(0);
-
         HandleDanceInput();
         HandleAttackInput();
 
         moveDirection = Vector3.zero;
 
-        if (!isDancing && !isInDialogue)
+        if (!isDancing && !isInDialogue && !isWaitingCombat)
         {
             HandleMovement();
             HandleJump();
         }
 
         ApplyGravity();
-
         UpdateAnimator();
         DetectCombat();
-
     }
 
     void HandleMovement()
     {
-        
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal");
 
@@ -78,7 +72,10 @@ public class PompompurinController : MonoBehaviour
         if (moveDirection.magnitude > 1f)
             moveDirection.Normalize();
 
-        player.Move(moveDirection * speed * Time.deltaTime);
+        Vector3 finalMove = moveDirection * speed;
+        finalMove.y = verticalVelocity.y;
+
+        player.Move(finalMove * Time.deltaTime);
 
         if (moveDirection.magnitude > 0.1f)
         {
@@ -92,7 +89,6 @@ public class PompompurinController : MonoBehaviour
         }
     }
 
-    // ================= JUMP =================
     void HandleJump()
     {
         if (player.isGrounded && Input.GetKeyDown(KeyCode.Space))
@@ -102,22 +98,17 @@ public class PompompurinController : MonoBehaviour
         }
     }
 
-    // ================= GRAVITY =================
     void ApplyGravity()
     {
         if (player.isGrounded && verticalVelocity.y < 0)
             verticalVelocity.y = -2f;
         else
             verticalVelocity.y += gravity * Time.deltaTime;
-        //player.Move(verticalVelocity * Time.deltaTime);
     }
 
-    // ================= DIALOGUE =================
     public void EnterDialogue()
     {
         isInDialogue = true;
-        moveDirection = Vector3.zero;
-        verticalVelocity = Vector3.zero;
         pompompurinAnimator.SetBool("InDialogue", true);
         pompompurinAnimator.SetFloat("Speed", 0f);
     }
@@ -128,7 +119,21 @@ public class PompompurinController : MonoBehaviour
         pompompurinAnimator.SetBool("InDialogue", false);
     }
 
-    // ================= ATTACK =================
+    public void EnterCombatPreparation()
+    {
+        isWaitingCombat = true;
+        pompompurinAnimator.SetBool("WaitFight", true);
+    }
+
+    public void StartCombat()
+    {
+        isWaitingCombat = false;
+        inCombat = true;
+
+        pompompurinAnimator.SetBool("WaitFight", false);
+        pompompurinAnimator.SetBool("InCombat", true);
+    }
+
     void DetectCombat()
     {
         inCombat = Physics.CheckSphere(transform.position, combatRange, enemyLayer);
@@ -137,7 +142,7 @@ public class PompompurinController : MonoBehaviour
     void HandleAttackInput()
     {
         if (isAttacking) return;
-        if (!inCombat) return;  
+        if (!inCombat) return;
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -156,7 +161,6 @@ public class PompompurinController : MonoBehaviour
         }
     }
 
-
     IEnumerator AttackWindow(float delay, float duration)
     {
         isAttacking = true;
@@ -174,69 +178,30 @@ public class PompompurinController : MonoBehaviour
         isAttacking = false;
     }
 
-    public void TakeDamage(int damage)
-    {
-        GameManager hp = GetComponent<GameManager>();
-        if (hp != null)
-            hp.TakeDamage(damage);
-    }
-
-
-    void Die()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    // ================= DANCE =================
     void HandleDanceInput()
     {
-        if (Input.GetKeyDown(KeyCode.Q) && stateInfo.IsName("Idle"))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             isDancing = true;
-            moveDirection = Vector3.zero;
             pompompurinAnimator.SetTrigger("Dance");
         }
     }
 
-    // Llamar desde un Animation Event al final del baile
     public void StopDance()
     {
         isDancing = false;
     }
 
-    // ================= ANIMATOR =================
     void UpdateAnimator()
     {
-        //pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
         pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
+
         if (!isInDialogue)
-        {
             pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
-        }
     }
 
     public int GetCurrentDamage()
     {
         return currentDamage;
-    }
-
-    public bool IsAttacking()
-    {
-        return isAttacking;
-    }
-
-    public void CalibrateForward()
-    {
-        Debug.Log("Calibrando forward");
-        transform.forward = cameraView;
-    }
-
-    public void SmoothForward()
-    {
-        Debug.Log("Suavizando forward");
-        transform.forward = Vector3.SmoothDamp(transform.forward,
-                                                   cameraView,
-                                                   ref velocity,
-                                                   smoothTime);
     }
 }
