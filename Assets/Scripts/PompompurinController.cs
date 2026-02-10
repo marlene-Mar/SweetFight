@@ -21,6 +21,7 @@ public class PompompurinController : MonoBehaviour
     private Vector3 moveDirection;
     private Vector3 verticalVelocity;
 
+    private bool isInDialogue = false;
     private bool isDancing = false;
 
     public Collider[] manoColliders;
@@ -50,7 +51,7 @@ public class PompompurinController : MonoBehaviour
 
         moveDirection = Vector3.zero;
 
-        if (!isDancing)
+        if (!isDancing && !isInDialogue)
         {
             HandleMovement();
             HandleJump();
@@ -110,6 +111,23 @@ public class PompompurinController : MonoBehaviour
             verticalVelocity.y += gravity * Time.deltaTime;
         //player.Move(verticalVelocity * Time.deltaTime);
     }
+
+    // ================= DIALOGUE =================
+    public void EnterDialogue()
+    {
+        isInDialogue = true;
+        moveDirection = Vector3.zero;
+        verticalVelocity = Vector3.zero;
+        pompompurinAnimator.SetBool("InDialogue", true);
+        pompompurinAnimator.SetFloat("Speed", 0f);
+    }
+
+    public void ExitDialogue()
+    {
+        isInDialogue = false;
+        pompompurinAnimator.SetBool("InDialogue", false);
+    }
+
     // ================= ATTACK =================
     void DetectCombat()
     {
@@ -189,8 +207,12 @@ public class PompompurinController : MonoBehaviour
     // ================= ANIMATOR =================
     void UpdateAnimator()
     {
-        pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        //pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
         pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
+        if (!isInDialogue)
+        {
+            pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        }
     }
 
     public int GetCurrentDamage()

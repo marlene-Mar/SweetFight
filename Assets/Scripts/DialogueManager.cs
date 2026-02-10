@@ -2,13 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro; 
+using TMPro;
 
 public class DialogueManager : MonoBehaviour
 {
     [Header("UI References")]
     public GameObject dialoguePanel;
-    public TextMeshProUGUI dialogueText; 
+    public TextMeshProUGUI dialogueText;
     public GameObject responseButtonsPanel;
     public Button responseButton;
 
@@ -16,6 +16,7 @@ public class DialogueManager : MonoBehaviour
     public float textSpeed = 0.05f;
 
     private GuardianController currentGuardian;
+    private PompompurinController playerController;
     private int currentDialogueIndex = 0;
     private bool isTyping = false;
 
@@ -72,6 +73,33 @@ public class DialogueManager : MonoBehaviour
 
         DisablePlayerControls();
         DisplayNextLine();
+    }
+
+    void DisablePlayerControls()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerController = player.GetComponent<PompompurinController>();
+            if (playerController != null)
+            {
+                playerController.EnterDialogue();  // ← Activar estado de diálogo
+                playerController.enabled = false;
+            }
+        }
+    }
+
+    void EnablePlayerControls()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            if (playerController != null)
+            {
+                playerController.ExitDialogue();    // ← Primero salir del diálogo
+                playerController.enabled = true;     // ← Luego habilitar el script
+            }
+        }
     }
 
     void DisplayNextLine()
@@ -153,50 +181,28 @@ public class DialogueManager : MonoBehaviour
 
     void EndDialogue()
     {
-        if (dialoguePanel != null)
+        // Avisar al guardián primero
+        if (currentGuardian != null)
+        {
+            currentGuardian.EndDialogue();
+            currentGuardian = null;
+        }
+
+        // Cerrar UI
+        if (dialoguePanel != null && dialoguePanel.activeSelf)
             dialoguePanel.SetActive(false);
 
-        if (responseButtonsPanel != null)
+        if (responseButtonsPanel != null && responseButtonsPanel.activeSelf)
             responseButtonsPanel.SetActive(false);
+
+        // Devolver controles
+        EnablePlayerControls();
     }
 
     void StartCombat()
     {
-        //EnablePlayerControls();
-        //if (currentGuardian != null)
-        //{
-        //    currentGuardian.StartCombat();
-        //}
-    }
-
-    void DisablePlayerControls()
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            MonoBehaviour[] scripts = player.GetComponents<MonoBehaviour>();
-            foreach (var script in scripts)
-            {
-                if (script.GetType().Name.Contains("Player") ||
-                    script.GetType().Name.Contains("Movement") ||
-                    script.GetType().Name.Contains("Controller"))
-                {
-                    script.enabled = false;
-                }
-            }
-        }
-    }
-
-    void EnablePlayerControls()
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            PompompurinController pompompurin = player.GetComponent<PompompurinController>();
-            if (pompompurin != null)
-            {
-                pompompurin.enabled = true;
-            }
-        }
+        // Aquí puedes activar combate si quieres después
+        // if (currentGuardian != null)
+        //     currentGuardian.StartCombat();
     }
 }

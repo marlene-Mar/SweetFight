@@ -3,122 +3,105 @@ using UnityEngine.AI;
 
 public class GuardianController : MonoBehaviour
 {
-    public Transform player;
-    public float minPatrolDistance = 15f;
-    public float maxPatrolDistance = 40f;
-    public float patrolSearchRadius = 60f;
-    public float distanceToGreet = 5f;
-    public float greetDuration = 3f;
-
-    private NavMeshAgent navAgent;
+    private NavMeshAgent agent;
     private Animator animator;
 
-    private bool isInitialized = false;
-    private bool isGreeting = false;
+    private MeshCollider[] validSurfaces;
+    private Transform player;
+
+    private DialogueManager dialogueManager;
+
+    public float patrolRadius = 25f;
+    public float waitTimeBetweenPoints = 1.5f;
+
+    public float detectionDistance = 5f;
+
+    private float waitTimer;
+    private bool hasDestination;
 
     private enum GuardianState
     {
         Patrolling,
-        Greeting
+        Greeting,
+        Talking,
+        Combat
     }
 
     private GuardianState currentState;
 
     void Awake()
     {
-        navAgent = GetComponent<NavMeshAgent>();
-        navAgent.speed = 2.0f;
+        agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
-
-        navAgent.enabled = false;
-    }
-
-    void Update()
-    {
-        if (!isInitialized)
-        {
-            TryInitialize();
-            return;
-        }
-
-        switch (currentState)
-        {
-            case GuardianState.Patrolling:
-                CheckPlayerDistance();
-                CheckIfReachedDestination();
-                break;
-
-            case GuardianState.Greeting:
-                LookAtPlayer();
-                break;
-        }
-
-        UpdateAnimations();
+        dialogueManager = FindObjectOfType<DialogueManager>();
     }
 
     public void Initialize(MeshCollider[] surfaces, Transform playerTransform)
     {
+        validSurfaces = surfaces;
         player = playerTransform;
+
+        currentState = GuardianState.Patrolling;
+        SetWalk(true);
     }
 
-    void TryInitialize()
+    void Update()
     {
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(transform.position, out hit, 5f, NavMesh.AllAreas))
+        if (player == null) return;
+
+        switch (currentState)
         {
-            transform.position = hit.position;
-            navAgent.enabled = true;
+            case GuardianState.Patrolling:
+                PatrolBehaviour();
+                DetectPlayer();
+                break;
 
-            isInitialized = true;
-            StartPatrolling();
-
-            Debug.Log($"✓ {gameObject.name} listo para recorrer el mapa completo");
+            case GuardianState.Greeting:
+            case GuardianState.Talking:
+            case GuardianState.Combat:
+                break;
         }
     }
 
-    void StartPatrolling()
+    void PatrolBehaviour()
     {
-        currentState = GuardianState.Patrolling;
-        GoToRandomNavMeshPoint();
-    }
-
-    void GoToRandomNavMeshPoint()
-    {
-        for (int i = 0; i < 10; i++)
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
-            Vector3 randomDirection = Random.insideUnitSphere * patrolSearchRadius;
-            randomDirection += transform.position;
+            SetWalk(false);
 
-            NavMeshHit hit;
-            if (NavMesh.SamplePosition(randomDirection, out hit, patrolSearchRadius, NavMesh.AllAreas))
+            waitTimer += Time.deltaTime;
+
+            if (waitTimer >= waitTimeBetweenPoints)
             {
-                float distance = Vector3.Distance(transform.position, hit.position);
-
-                if (distance >= minPatrolDistance && distance <= maxPatrolDistance)
-                {
-                    navAgent.isStopped = false;
-                    navAgent.SetDestination(hit.position);
-                    return;
-                }
+                MoveToRandomPoint();
+                waitTimer = 0;
             }
         }
-    }
-
-    void CheckIfReachedDestination()
-    {
-        if (!navAgent.pathPending && navAgent.remainingDistance < 1.5f)
+        else
         {
-            GoToRandomNavMeshPoint();
+            SetWalk(true);
         }
     }
 
-    void CheckPlayerDistance()
+    void MoveToRandomPoint()
     {
-        if (player == null || isGreeting) return;
+        Vector3 randomDirection = Random.insideUnitSphere * patrolRadius;
+        randomDirection += transform.position;
 
+        NavMeshHit hit;
+
+        if (NavMesh.SamplePosition(randomDirection, out hit, patrolRadius, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+            hasDestination = true;
+        }
+    }
+
+    void DetectPlayer()
+    {
         float distance = Vector3.Distance(transform.position, player.position);
 
-        if (distance <= distanceToGreet)
+        if (distance <= detectionDistance)
         {
             StartGreeting();
         }
@@ -126,45 +109,45 @@ public class GuardianController : MonoBehaviour
 
     void StartGreeting()
     {
-        isGreeting = true;
         currentState = GuardianState.Greeting;
 
-        navAgent.isStopped = true;
-        navAgent.ResetPath();
+        agent.isStopped = true;
 
-        if (animator != null)
-            animator.SetTrigger("Greet");
+        SetWalk(false);
 
-        Invoke(nameof(ReturnToPatrol), greetDuration);
+        transform.LookAt(player);
+
+        animator.SetBool("isGreeting", true);
+
+        Invoke(nameof(StartDialogue), 2f); 
     }
 
-    void ReturnToPatrol()
+    void StartDialogue()
     {
-        isGreeting = false;
-        currentState = GuardianState.Patrolling;
-        GoToRandomNavMeshPoint();
-    }
+        animator.SetBool("isGreeting", false);
 
-    void LookAtPlayer()
-    {
-        if (player == null) return;
+        currentState = GuardianState.Talking;
 
-        Vector3 direction = player.position - transform.position;
-        direction.y = 0;
-
-        if (direction != Vector3.zero)
+        if (dialogueManager != null)
         {
-            Quaternion lookRot = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, Time.deltaTime * 5f);
+            dialogueManager.StartGuardianDialogue(this);
         }
     }
 
-    void UpdateAnimations()
+    public void EndDialogue()
     {
-        if (animator == null || !navAgent.enabled) return;
+        currentState = GuardianState.Combat;
 
-        float speed = navAgent.velocity.magnitude;
-        animator.SetFloat("Speed", speed);
-        animator.SetBool("Walk", speed > 0.1f);
+        StartCombat();
+    }
+
+    void StartCombat()
+    {
+        animator.SetTrigger("GolpeP");
+    }
+
+    void SetWalk(bool value)
+    {
+        animator.SetBool("Walk", value);
     }
 }

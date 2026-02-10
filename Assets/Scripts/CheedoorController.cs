@@ -54,19 +54,19 @@ public class CheedoorController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Detectar golpe del jugador
-        if (other.CompareTag("Mano"))
-        {
-            PompompurinController playerController = other.GetComponentInParent<PompompurinController>();
-            if (playerController != null && playerController.IsAttacking())
-            {
-                int dmg = playerController.GetCurrentDamage();
+        //if (other.CompareTag("Mano"))
+        //{
+        //    PlayerCombat playerController = other.GetComponentInParent<PlayerCombat>();
+        //    if (playerController != null && playerController.IsAttacking())
+        //    {
+        //        int dmg = playerController.GetCurrentDamage();
 
-                // Calcular dirección del empuje (desde las manos hacia el enemigo)
-                Vector3 knockbackDirection = (transform.position - other.transform.position).normalized;
+        //        // Calcular dirección del empuje (desde las manos hacia el enemigo)
+        //        Vector3 knockbackDirection = (transform.position - other.transform.position).normalized;
 
-                TakeDamage(dmg, knockbackDirection);
-            }
-        }
+        //        TakeDamage(dmg, knockbackDirection);
+        //    }
+        //}
     }
 
     private void OnTriggerStay(Collider other)
