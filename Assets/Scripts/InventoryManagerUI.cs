@@ -27,7 +27,7 @@ public class InventoryManagerUI : MonoBehaviour
                        ItemSlotUI itemSlotUI = newItemSlot.GetComponent<ItemSlotUI>();
 
             itemSlotUI.itemIconImage.sprite = item.itemData.itemIcon;
-            itemSlotUI.itemNameText.text = item.itemData.itemName;
+            //itemSlotUI.itemNameText.text = item.itemData.itemName;
             itemSlotUI.itemQuantityText.text = "x" + item.itemQuantity.ToString();
 
 

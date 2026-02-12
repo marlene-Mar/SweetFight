@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.SceneManagement;
 
 public class PompompurinController : MonoBehaviour
 {
@@ -16,11 +15,8 @@ public class PompompurinController : MonoBehaviour
 
     private Vector3 moveDirection;
     private Vector3 verticalVelocity;
-    private Vector3 cameraView;
 
     private bool isInDialogue = false;
-    private bool isDancing = false;
-    private bool isWaitingCombat = false;
 
     public Collider[] manoColliders;
 
@@ -34,29 +30,36 @@ public class PompompurinController : MonoBehaviour
     public bool isAttacking = false;
 
     private int currentDamage;
+    public int life = 100;
 
     void Start()
     {
         pompompurinAnimator = GetComponent<Animator>();
         player = GetComponent<CharacterController>();
+
+        foreach (var col in manoColliders)
+            col.enabled = false;
     }
 
     void Update()
     {
-        HandleDanceInput();
-        HandleAttackInput();
+        DetectCombat();
+        HandleJump();
+
+        if (inCombat && !isInDialogue)
+        {
+            HandleAttackInput();
+        }
 
         moveDirection = Vector3.zero;
 
-        if (!isDancing && !isInDialogue && !isWaitingCombat)
+        if (!isInDialogue && !isAttacking)
         {
             HandleMovement();
-            HandleJump();
         }
 
         ApplyGravity();
         UpdateAnimator();
-        DetectCombat();
     }
 
     void HandleMovement()
@@ -64,7 +67,7 @@ public class PompompurinController : MonoBehaviour
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal");
 
-        cameraView = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
+        Vector3 cameraView = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
         Vector3 cameraRight = Camera.main.transform.right;
 
         moveDirection = cameraView * v + cameraRight * h;
@@ -94,16 +97,23 @@ public class PompompurinController : MonoBehaviour
         if (player.isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             verticalVelocity.y = jumpForce;
-            pompompurinAnimator.SetTrigger("Jump");
+            pompompurinAnimator.SetBool("Jump", true);
         }
     }
 
     void ApplyGravity()
     {
-        if (player.isGrounded && verticalVelocity.y < 0)
-            verticalVelocity.y = -2f;
+        if (player.isGrounded)
+        {
+            if (verticalVelocity.y < 0)
+                verticalVelocity.y = -2f;
+
+            pompompurinAnimator.SetBool("Jump", false);
+        }
         else
+        {
             verticalVelocity.y += gravity * Time.deltaTime;
+        }
     }
 
     public void EnterDialogue()
@@ -119,45 +129,47 @@ public class PompompurinController : MonoBehaviour
         pompompurinAnimator.SetBool("InDialogue", false);
     }
 
-    public void EnterCombatPreparation()
+    public void StartCombatAfterDialogue()
     {
-        isWaitingCombat = true;
-        pompompurinAnimator.SetBool("WaitFight", true);
-    }
-
-    public void StartCombat()
-    {
-        isWaitingCombat = false;
         inCombat = true;
-
-        pompompurinAnimator.SetBool("WaitFight", false);
         pompompurinAnimator.SetBool("InCombat", true);
     }
 
     void DetectCombat()
     {
-        inCombat = Physics.CheckSphere(transform.position, combatRange, enemyLayer);
+        if (inCombat || isInDialogue) return;
+
+        bool enemiesNearby = Physics.CheckSphere(transform.position, combatRange, enemyLayer);
+
+        if (enemiesNearby)
+        {
+            inCombat = true;
+            pompompurinAnimator.SetBool("InCombat", true);
+        }
+    }
+
+    public void ExitCombat()
+    {
+        inCombat = false;
+        isAttacking = false;
+        pompompurinAnimator.SetBool("InCombat", false);
     }
 
     void HandleAttackInput()
     {
         if (isAttacking) return;
-        if (!inCombat) return;
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.R))
         {
-            if (Input.GetKey(KeyCode.R))
-            {
-                currentDamage = damageGolpe2;
-                pompompurinAnimator.SetTrigger("Attack2");
-                StartCoroutine(AttackWindow(0.25f, 0.15f));
-            }
-            else
-            {
-                currentDamage = damageGolpe1;
-                pompompurinAnimator.SetTrigger("Attack1");
-                StartCoroutine(AttackWindow(0.2f, 0.12f));
-            }
+            currentDamage = damageGolpe2;
+            pompompurinAnimator.SetTrigger("Attack2");
+            StartCoroutine(AttackWindow(0.25f, 0.15f));
+        }
+        else if (Input.GetMouseButtonDown(0))
+        {
+            currentDamage = damageGolpe1;
+            pompompurinAnimator.SetTrigger("Attack1");
+            StartCoroutine(AttackWindow(0.2f, 0.12f));
         }
     }
 
@@ -178,30 +190,40 @@ public class PompompurinController : MonoBehaviour
         isAttacking = false;
     }
 
-    void HandleDanceInput()
-    {
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            isDancing = true;
-            pompompurinAnimator.SetTrigger("Dance");
-        }
-    }
-
-    public void StopDance()
-    {
-        isDancing = false;
-    }
-
     void UpdateAnimator()
     {
         pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
 
-        if (!isInDialogue)
+        if (!isInDialogue && !isAttacking)
             pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        else
+            pompompurinAnimator.SetFloat("Speed", 0f);
+
+        pompompurinAnimator.SetFloat("life", life);
     }
 
     public int GetCurrentDamage()
     {
         return currentDamage;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        life -= damage;
+
+        Debug.Log($"Pompompurin recibió {damage} de daño. Salud: {life}/100");
+
+        if (life <= 0)
+        {
+            life = 0;
+            pompompurinAnimator.SetTrigger("Die");
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        Debug.Log("Pompompurin ha muerto!");
+        enabled = false;
     }
 }

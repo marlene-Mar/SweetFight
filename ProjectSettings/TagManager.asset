@@ -4,6 +4,8 @@
 TagManager:
   serializedVersion: 3
   tags:
+  - ManoIzq
+  - ManoDer
   - Flan
   layers:
   - Default
@@ -16,7 +18,7 @@ TagManager:
   - 
   - Lava
   - Guardian
-  - Mano
+  - PlayerWeapon
   - 
   - 
   - 
