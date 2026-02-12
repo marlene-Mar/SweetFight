@@ -840,7 +840,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 69318009}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.074592605, y: -0.0047944975, z: 0.00035863734, w: 0.9972025}
+  m_LocalRotation: {x: 0.074592054, y: -0.006131695, z: 0.00045866217, w: 0.9971952}
   m_LocalPosition: {x: -1.811, y: -1.025471, z: -104.48743}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3714,7 +3714,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.07459262, y: -0.004794498, z: 0.00035863742, w: 0.9972025}
+  m_LocalRotation: {x: 0.07459206, y: -0.0061316956, z: 0.00045866222, w: 0.9971952}
   m_LocalPosition: {x: -1.811, y: -1.025471, z: -104.48743}
   m_LocalScale: {x: 1, y: 1, z: 0.66755}
   m_ConstrainProportionsScale: 0
@@ -4701,19 +4701,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
   m_PrefabInstance: {fileID: 770978793}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &439080075
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 439080068}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e66c9afa4bfb0c4580016852f146c24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlanCollection
---- !u!114 &439080077
+--- !u!114 &439080076
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4732,15 +4720,27 @@ MonoBehaviour:
   manoColliders:
   - {fileID: 1444064633}
   - {fileID: 2103905535}
-  damageGolpe1: 15
-  damageGolpe2: 20
-  combatRange: 5
+  damageGolpe1: 10
+  damageGolpe2: 15
+  combatRange: 2
   enemyLayer:
     serializedVersion: 2
     m_Bits: 8
   inCombat: 0
   isAttacking: 0
   life: 100
+--- !u!114 &439080077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439080068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e66c9afa4bfb0c4580016852f146c24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlanCollection
 --- !u!1 &439296027
 GameObject:
   m_ObjectHideFlags: 0
@@ -9185,19 +9185,23 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: d494b36959e3405488ea1d43ff59fa8e, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 439080075}
+      addedObject: {fileID: 439080077}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 439080071}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 439080077}
+      addedObject: {fileID: 439080076}
     - targetCorrespondingSourceObject: {fileID: -4728426434207774260, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1444064633}
@@ -15218,7 +15222,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   maxHealth: 100
   currentHealth: 100
-  smoothSpeed: 1
   healthPompompurinBar: {fileID: 1461362448}
   healtCheedorBar: {fileID: 0}
   musicSource: {fileID: 433400077}
