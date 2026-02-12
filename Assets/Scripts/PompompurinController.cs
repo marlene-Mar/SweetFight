@@ -6,7 +6,7 @@ public class PompompurinController : MonoBehaviour
     private CharacterController player;
     private Animator pompompurinAnimator;
 
-    [SerializeField] private float speed = 2f;
+    [SerializeField] private float speed = 2.5f;
     [SerializeField] private float gravity = -9.8f;
     [SerializeField] private float jumpForce = 4.5f;
 
@@ -201,6 +201,7 @@ public class PompompurinController : MonoBehaviour
 
         pompompurinAnimator.SetFloat("life", life);
     }
+
 
     public int GetCurrentDamage()
     {
