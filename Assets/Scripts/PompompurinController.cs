@@ -194,10 +194,14 @@ public class PompompurinController : MonoBehaviour
     {
         pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
 
-        if (!isInDialogue && !isAttacking)
-            pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
-        else
+        if (isAttacking || isInDialogue)
+        {
             pompompurinAnimator.SetFloat("Speed", 0f);
+        }
+        else
+        {
+            pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        }
 
         pompompurinAnimator.SetFloat("life", life);
     }
@@ -211,19 +215,20 @@ public class PompompurinController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         life -= damage;
+        pompompurinAnimator.SetTrigger("RecibirGolpe"); // Agregar trigger para recibir daño
 
         Debug.Log($"Pompompurin recibió {damage} de daño. Salud: {life}/100");
 
         if (life <= 0)
         {
             life = 0;
-            pompompurinAnimator.SetTrigger("Die");
             Die();
         }
     }
 
     void Die()
     {
+        pompompurinAnimator.SetBool("IsDead", true);
         Debug.Log("Pompompurin ha muerto!");
         enabled = false;
     }
