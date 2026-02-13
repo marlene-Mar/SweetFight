@@ -33,7 +33,11 @@ public class UIManager : MonoBehaviour
     public Image vida1Cheedor;
     public Image vida2Cheedor;
     public Image vida3Cheedor;
-    private bool isPaused = false;
+
+    //==============================
+    //MAPA
+    //==============================
+    public GameObject PanelMap;
 
     // ==============================
     // AUDIO
@@ -74,6 +78,7 @@ public class UIManager : MonoBehaviour
 
         HudPanel.SetActive(false);
         PausaPanel.SetActive(false);
+        PanelMap.SetActive(false);
 
         gameManager = FindFirstObjectByType<GameManager>();
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
@@ -241,6 +246,10 @@ public class UIManager : MonoBehaviour
         Salir();
     }
 
+    public void ActMapa()
+    {
+        PanelMap.SetActive(true);
+    }
     // =========AUDIO=========
 
     public void IncreaseMusic() => ChangeMusicVolume(1);

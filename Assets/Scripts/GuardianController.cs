@@ -202,6 +202,7 @@ public class GuardianController : MonoBehaviour
     private DialogueManager dialogueManager;
     private CombatManager combatManager;
 
+    //Patrulla
     public float patrolRadius = 25f;
     public float waitTimeBetweenPoints = 1.5f;
     public float detectionDistance = 5f;
@@ -214,6 +215,9 @@ public class GuardianController : MonoBehaviour
     // Salud del guardián
     public int maxHealth = 100;
     private int currentHealth;
+
+    public GameObject weaponObject;
+    public Collider weaponCollider;
 
     private float waitTimer;
     private bool hasDestination;
@@ -236,6 +240,17 @@ public class GuardianController : MonoBehaviour
         combatManager = FindObjectOfType<CombatManager>();
 
         currentHealth = maxHealth;
+    }
+
+    void Start()
+    {
+        if (weaponCollider == null && weaponObject != null)
+        {
+            weaponCollider = weaponObject.GetComponent<Collider>();
+        }
+
+        if (weaponCollider != null)
+            weaponCollider.enabled = false;
     }
 
     public void Initialize(MeshCollider[] surfaces, Transform playerTransform)
@@ -358,6 +373,9 @@ public class GuardianController : MonoBehaviour
             combatManager.StartCombat(this, playerController);
         }
 
+        if (weaponObject != null)
+            weaponObject.SetActive(true);
+
         StartCombat();
     }
 
@@ -395,6 +413,35 @@ public class GuardianController : MonoBehaviour
         isAttacking = false;
     }
 
+    public void EnableWeaponCollider()
+    {
+        if (weaponCollider != null)
+        {
+            weaponCollider.enabled = true;
+            Debug.Log("Lanza activada - puede hacer daño");
+        }
+    }
+
+    public void DisableWeaponCollider()
+    {
+        if (weaponCollider != null)
+        {
+            weaponCollider.enabled = false;
+            Debug.Log("Lanza desactivada - no puede hacer daño");
+        }
+    }
+
+    public void OnHitLanded()
+    {
+        Debug.Log("¡Guardián conectó un golpe!");
+
+        // Notificar al CombatManager si existe
+        if (combatManager != null)
+        {
+            combatManager.OnGuardianHit();
+        }
+    }
+
     // **DETECCIÓN DE GOLPES DEL JUGADOR**
     void OnTriggerEnter(Collider other)
     {
@@ -402,7 +449,7 @@ public class GuardianController : MonoBehaviour
         if (currentState != GuardianState.Combat) return;
 
         // Verificar si es la mano de Pompompurin
-        if (other.CompareTag("PlayerWeapon") || other.name.Contains("mano"))
+        if (other.name.Contains("mano"))
         {
             // Buscar al controlador del jugador
             PompompurinController pompom = other.GetComponentInParent<PompompurinController>();
@@ -420,8 +467,7 @@ public class GuardianController : MonoBehaviour
         currentHealth -= damage;
         Debug.Log($"Guardian recibió {damage} de daño. Salud: {currentHealth}/{maxHealth}");
 
-        // Aquí puedes agregar animación de recibir golpe
-        // animator.SetTrigger("TakeDamage");
+        animator.SetTrigger("GolpeP");
 
         if (currentHealth <= 0)
         {
@@ -432,17 +478,16 @@ public class GuardianController : MonoBehaviour
     void Die()
     {
         Debug.Log("Guardian derrotado!");
-        currentState = GuardianState.Patrolling;
+        //currentState = GuardianState.Patrolling;
+        animator.SetBool("Die", true);
         animator.SetBool("InCombat", false);
+        //animator.SetBool("InGame", true);
 
         // Notificar al CombatManager
         if (combatManager != null)
         {
             combatManager.EndCombat(true);
         }
-
-        // Opcional: Desactivar el guardián o hacer que se una al jugador
-        // gameObject.SetActive(false);
     }
 
     void LookAtPlayer()
@@ -475,5 +520,13 @@ public class GuardianController : MonoBehaviour
         agent.isStopped = false;
         isAttacking = false;
         attackTimer = 0f;
+
+        if (weaponObject != null)
+            weaponObject.SetActive(false);
+    }
+
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
     }
 }

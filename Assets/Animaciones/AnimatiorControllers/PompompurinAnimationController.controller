@@ -92,14 +92,6 @@ BlendTree:
     m_Motion: {fileID: -203655887218126122, guid: 692224b761791f14ba7d461aef9919f8, type: 3}
     m_Threshold: 0
     m_Position: {x: 0, y: 0}
-    m_TimeScale: 0.5
-    m_CycleOffset: 0
-    m_DirectBlendParameter: Blend
-    m_Mirror: 0
-  - serializedVersion: 2
-    m_Motion: {fileID: -203655887218126122, guid: 2c971fa9ced2d544dba3d018758c402a, type: 3}
-    m_Threshold: 0.5
-    m_Position: {x: 0, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: Blend
@@ -107,7 +99,7 @@ BlendTree:
   m_BlendParameter: Speed
   m_BlendParameterY: Blend
   m_MinThreshold: 0
-  m_MaxThreshold: 0.5
+  m_MaxThreshold: 1
   m_UseAutomaticThresholds: 0
   m_NormalizedBlendValues: 0
   m_BlendType: 0
@@ -465,7 +457,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Walk With Briefcase
+  m_Name: Caminar
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -766,7 +758,7 @@ AnimatorStateTransition:
   - m_ConditionMode: 4
     m_ConditionEvent: Speed
     m_EventTreshold: 0.1
-  - m_ConditionMode: 2
+  - m_ConditionMode: 1
     m_ConditionEvent: InDialogue
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
@@ -1068,7 +1060,7 @@ AnimatorStateMachine:
     m_Position: {x: 3170, y: -450, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -2719701949564010833}
-    m_Position: {x: 3170, y: -510, z: 0}
+    m_Position: {x: 2760, y: -530, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -1227,7 +1219,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Running
+  m_Name: Correr
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []

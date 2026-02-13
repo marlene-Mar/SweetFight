@@ -386,6 +386,8 @@ MonoBehaviour:
   detectionDistance: 5
   timeBetweenAttacks: 2
   maxHealth: 100
+  weaponObject: {fileID: 7228315001083949720}
+  weaponCollider: {fileID: 7480992279374681197}
 --- !u!4 &3199510723708162321 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8374e12f18f28664781e79de0926e693, type: 3}
