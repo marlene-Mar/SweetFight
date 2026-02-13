@@ -11,10 +11,10 @@ public class CombatManager : MonoBehaviour
     private int playerHitsLanded = 0;
     private int guardianHitsLanded = 0;
     private int totalDamageDealt = 0;
+    private int totalDamageTaken = 0;
 
     void Start()
     {
-        // Ocultar UI de combate al inicio
         if (combatUI != null)
             combatUI.SetActive(false);
     }
@@ -27,10 +27,10 @@ public class CombatManager : MonoBehaviour
         playerHitsLanded = 0;
         guardianHitsLanded = 0;
         totalDamageDealt = 0;
+        totalDamageTaken = 0;
 
         Debug.Log("¡Combate iniciado con el Guardian!");
 
-        // Mostrar UI de combate
         if (combatUI != null)
             combatUI.SetActive(true);
 
@@ -41,7 +41,6 @@ public class CombatManager : MonoBehaviour
     {
         Debug.Log("Inicializando combate...");
 
-        // Detener el NavMesh del Guardian
         if (currentEnemy != null)
         {
             UnityEngine.AI.NavMeshAgent guardianNav = currentEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
@@ -49,44 +48,50 @@ public class CombatManager : MonoBehaviour
                 guardianNav.isStopped = true;
         }
 
-        // Activar el modo de combate en Pompompurin
         if (player != null)
         {
             player.inCombat = true;
         }
     }
 
+    // Llamado cuando Pompompurin golpea al Guardian
     public void OnPlayerHit(int damage)
     {
         playerHitsLanded++;
         totalDamageDealt += damage;
 
-        Debug.Log($"¡Pompompurin conectó golpe #{playerHitsLanded}! Daño total: {totalDamageDealt}");
+        Debug.Log($"¡Pompompurin conectó golpe #{playerHitsLanded}! Daño: {damage} | Total: {totalDamageDealt}");
 
-        // Aquí puedes actualizar UI de combate
-        // Por ejemplo: UpdateCombatUI();
+        // Aplicar daño al Guardian
+        if (currentEnemy != null)
+        {
+            currentEnemy.TakeDamage(damage);
+        }
     }
 
-    public void OnGuardianHit()
+    // Llamado cuando el Guardian golpea a Pompompurin
+    public void OnGuardianHit(int damage)
     {
         guardianHitsLanded++;
+        totalDamageTaken += damage;
 
-        Debug.Log($"¡Guardián conectó golpe #{guardianHitsLanded}!");
+        Debug.Log($"¡Guardián conectó golpe #{guardianHitsLanded}! Daño: {damage} | Total recibido: {totalDamageTaken}");
 
-        // Aquí puedes actualizar UI o efectos visuales
+        // Aplicar daño a Pompompurin
+        if (player != null)
+        {
+            player.TakeDamage(damage);
+        }
     }
 
     public void EndCombat(bool playerWon)
     {
         Debug.Log(playerWon ? "¡Victoria!" : "Derrota...");
-
         ShowCombatStats();
 
-        // Ocultar UI de combate
         if (combatUI != null)
             combatUI.SetActive(false);
 
-        // Lógica post-combate
         if (playerWon)
         {
             OnPlayerVictory();
@@ -103,18 +108,17 @@ public class CombatManager : MonoBehaviour
         Debug.Log($"Golpes de Pompompurin: {playerHitsLanded}");
         Debug.Log($"Daño total infligido: {totalDamageDealt}");
         Debug.Log($"Golpes del Guardián: {guardianHitsLanded}");
+        Debug.Log($"Daño total recibido: {totalDamageTaken}");
         Debug.Log("================================");
     }
 
     void OnPlayerVictory()
     {
-        // Desactivar modo combate en Pompompurin
         if (player != null)
         {
             player.ExitCombat();
         }
 
-        // Desactivar combate del guardián
         if (currentEnemy != null)
         {
             currentEnemy.EndCombat();
@@ -126,24 +130,12 @@ public class CombatManager : MonoBehaviour
     void OnPlayerDefeat()
     {
         Debug.Log("Has sido derrotado por el Guardian.");
-
-        // - Recargar escena
-        // - Mostrar pantalla de Game Over
-        // - Respawn del jugador
+        // Aquí puedes agregar:
+        // UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
-    public int GetPlayerHits()
-    {
-        return playerHitsLanded;
-    }
-
-    public int GetGuardianHits()
-    {
-        return guardianHitsLanded;
-    }
-
-    public int GetTotalDamage()
-    {
-        return totalDamageDealt;
-    }
+    public int GetPlayerHits() => playerHitsLanded;
+    public int GetGuardianHits() => guardianHitsLanded;
+    public int GetTotalDamageDealt() => totalDamageDealt;
+    public int GetTotalDamageTaken() => totalDamageTaken;
 }

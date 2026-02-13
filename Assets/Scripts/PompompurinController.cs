@@ -6,9 +6,9 @@ public class PompompurinController : MonoBehaviour
     private CharacterController player;
     private Animator pompompurinAnimator;
 
-    [SerializeField] private float speed = 2.5f;
-    [SerializeField] private float gravity = -9.8f;
-    [SerializeField] private float jumpForce = 4.5f;
+    private float speed = 2.5f;
+    private float gravity = -9.8f;
+    private float jumpForce = 4.5f;
 
     public float smoothTime = 0.3f;
     private Vector3 smoothVelocity;
@@ -32,13 +32,25 @@ public class PompompurinController : MonoBehaviour
     private int currentDamage;
     public int life = 100;
 
+    private CombatManager combatManager;
+
     void Start()
     {
         pompompurinAnimator = GetComponent<Animator>();
         player = GetComponent<CharacterController>();
+        combatManager = FindObjectOfType<CombatManager>();
 
+        // Configurar los colliders de las manos
         foreach (var col in manoColliders)
+        {
             col.enabled = false;
+
+            // Agregar el componente de detección de golpe si no existe
+            if (col.GetComponent<PompompurinHandCollider>() == null)
+            {
+                col.gameObject.AddComponent<PompompurinHandCollider>();
+            }
+        }
     }
 
     void Update()
@@ -206,7 +218,6 @@ public class PompompurinController : MonoBehaviour
         pompompurinAnimator.SetFloat("life", life);
     }
 
-
     public int GetCurrentDamage()
     {
         return currentDamage;
@@ -215,7 +226,7 @@ public class PompompurinController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         life -= damage;
-        pompompurinAnimator.SetTrigger("RecibirGolpe"); // Agregar trigger para recibir daño
+        pompompurinAnimator.SetTrigger("RecibirGolpe");
 
         Debug.Log($"Pompompurin recibió {damage} de daño. Salud: {life}/100");
 
@@ -230,6 +241,55 @@ public class PompompurinController : MonoBehaviour
     {
         pompompurinAnimator.SetBool("IsDead", true);
         Debug.Log("Pompompurin ha muerto!");
+
+        // Notificar al CombatManager
+        if (combatManager != null)
+        {
+            combatManager.EndCombat(false);
+        }
+
         enabled = false;
+    }
+
+    // Método público para que los colliders de las manos notifiquen golpes
+    public void NotifyHitLanded()
+    {
+        if (combatManager != null)
+        {
+            combatManager.OnPlayerHit(currentDamage);
+        }
+    }
+}
+
+// CLASE AUXILIAR PARA LOS COLLIDERS DE LAS MANOS
+public class PompompurinHandCollider : MonoBehaviour
+{
+    private PompompurinController playerController;
+
+    void Start()
+    {
+        playerController = GetComponentInParent<PompompurinController>();
+
+        if (playerController == null)
+        {
+            Debug.LogError($"PompompurinHandCollider en {gameObject.name} no encontró PompompurinController en el padre!");
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        // Verificar si golpeó al Guardian
+        if (other.CompareTag("Enemy") || other.name.Contains("Guardian"))
+        {
+            if (playerController != null && playerController.isAttacking)
+            {
+                int damage = playerController.GetCurrentDamage();
+
+                Debug.Log($"¡Mano de Pompompurin golpeó al Guardian! Daño: {damage}");
+
+                // Notificar al controlador principal
+                playerController.NotifyHitLanded();
+            }
+        }
     }
 }
