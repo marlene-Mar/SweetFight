@@ -5,14 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    //BARRAS DE VIDA POMPOMPURIN
-    public int maxHealth = 100; 
-    public int currentHealth;  
-    private float displayHealth; 
-
     private float smoothSpeed = 3f; 
     public Image healthPompompurinBar;
-    public Image healtCheedorBar; 
+    public Image healtCheedorBar;
+
+    private VidaJugador vidaJugador;
 
     //AUDIO
     public AudioSource musicSource;
@@ -39,44 +36,55 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        currentHealth = maxHealth;
-        displayHealth = (float)maxHealth; 
-        UpdateUI();
         PlayMusicByState(GameState.Menu);
-    }
 
-    void Update()
-    {
-        if (!Mathf.Approximately(displayHealth, currentHealth))
+        vidaJugador = FindObjectOfType<VidaJugador>();
+
+        if (vidaJugador != null)
         {
-            displayHealth = Mathf.Lerp(displayHealth, currentHealth, Time.deltaTime * smoothSpeed);
-            UpdateUI();
+            vidaJugador.OnVidaChanged += UpdateHealthBar;
+            vidaJugador.OnPlayerDead += Die;
         }
     }
 
+    //void Update()
+    //{
+    //    if (vidaJugador != null)
+    //    {
+    //        currentHealth = vidaJugador.vidaActual;
+    //    }
+
+    //    if (!Mathf.Approximately(displayHealth, currentHealth))
+    //    {
+    //        displayHealth = Mathf.Lerp(displayHealth, currentHealth, Time.deltaTime * smoothSpeed);
+    //        UpdateUI();
+    //    }
+
+    //}
+
     //JUEGO: BARRAS VIDA, CANDYCOINDS, VIDA CAMEMI, CHEEDOR, RATBOOT
-    void UpdateUI()
+    //void UpdateUI()
+    //{
+    //    if (healthPompompurinBar != null)
+    //    {
+    //        healthPompompurinBar.fillAmount = displayHealth / maxHealth; 
+    //    }
+
+    //}
+
+    void UpdateHealthBar(int vidaActual, int vidaMaxima)
     {
         if (healthPompompurinBar != null)
         {
-            healthPompompurinBar.fillAmount = displayHealth / maxHealth; 
+            healthPompompurinBar.fillAmount =
+                (float)vidaActual / vidaMaxima;
         }
-
     }
 
     public void TakeDamage(int damage)
     {
-        PompompurinController player = FindObjectOfType<PompompurinController>();
-        if (player != null) player.TakeDamage(damage);  // Para el animator "Die"
-
-        currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        // Sonido de daño
-        // PlaySfx(2); 
-
-        if (currentHealth <= 0)
-            Die();
+        if (vidaJugador != null)
+            vidaJugador.RecibirDaño(damage);
     }
 
     void Die()

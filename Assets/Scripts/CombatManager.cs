@@ -43,7 +43,7 @@ public class CombatManager : MonoBehaviour
         if (player != null)
         {
             player.inCombat = true;
-           // player.SetInCombat(true);  // FIX: Usa método público en lugar de acceso directo
+            // player.SetInCombat(true);  // FIX: Usa método público en lugar de acceso directo
         }
     }
 
@@ -69,7 +69,7 @@ public class CombatManager : MonoBehaviour
 
         if (player != null)
         {
-            player.TakeDamage(damage);
+            //player.TakeDamage(damage);
         }
     }
 
@@ -134,3 +134,57 @@ public class CombatManager : MonoBehaviour
     public int GetTotalDamageDealt() => totalDamageDealt;
     public int GetTotalDamageTaken() => totalDamageTaken;
 }
+
+//using UnityEngine;
+
+//public class CombatManager : MonoBehaviour
+//{
+//    public GameObject combatUI;
+
+//    private GuardianController currentEnemy;
+//    private PompompurinController player;
+
+//    void Start()
+//    {
+//        if (combatUI != null)
+//            combatUI.SetActive(false);
+//    }
+
+//    public void StartCombat(GuardianController guardian, PompompurinController pompompurin)
+//    {
+//        currentEnemy = guardian;
+//        player = pompompurin;
+
+//        if (combatUI != null)
+//            combatUI.SetActive(true);
+
+//        GameFlowManager.Instance.ChangeState(GameState.Combat);
+//    }
+
+//    public void OnPlayerHit(int damage)
+//    {
+//        if (currentEnemy != null)
+//            currentEnemy.TakeDamage(damage);
+//    }
+
+//    public void EndCombat(bool playerWon)
+//    {
+//        if (combatUI != null)
+//            combatUI.SetActive(false);
+
+//        GameFlowManager.Instance.ChangeState(GameState.Exploration);
+//    }
+
+//    public void OnGuardianHit(int damage)
+//    {
+//        if (GameFlowManager.Instance.player != null)
+//        {
+//            VidaJugador vida = GameFlowManager.Instance.player.GetComponent<VidaJugador>();
+
+//            if (vida != null)
+//            {
+//                vida.RecibirDaño(damage);
+//            }
+//        }
+//    }
+//}

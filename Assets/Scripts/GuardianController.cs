@@ -42,6 +42,8 @@ public class GuardianController : MonoBehaviour
     private float waitTimer;
     private bool hasDestination;
 
+    public bool playerNearby;
+
     private enum GuardianState
     {
         Patrolling,
@@ -566,3 +568,47 @@ public class GuardianWeaponCollider : MonoBehaviour
         }
     }
 }
+
+//using UnityEngine;
+
+//public class GuardianController : MonoBehaviour
+//{
+//    public int life = 100;
+
+//    private MeshCollider[] validSurfaces;
+//    private Transform player;
+
+//    public void Initialize(MeshCollider[] surfaces, Transform playerTransform)
+//    {
+//        validSurfaces = surfaces;
+//        player = playerTransform;
+
+//        Debug.Log($"Guardian inicializado. Player asignado: {player != null}");
+//    }
+
+//    public void StartGreeting()
+//    {
+//        GameFlowManager.Instance.ChangeState(GameState.Greeting);
+//    }
+
+//    public void StartDialogue()
+//    {
+//        GameFlowManager.Instance.dialogueManager.StartGuardianDialogue(this);
+//    }
+
+//    public void TakeDamage(int damage)
+//    {
+//        life -= damage;
+
+//        if (life <= 0)
+//        {
+//            life = 0;
+//            Die();
+//        }
+//    }
+
+//    void Die()
+//    {
+//        GameFlowManager.Instance.combatManager.EndCombat(true);
+//    }
+//}

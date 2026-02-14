@@ -5,6 +5,7 @@ public class PompompurinController : MonoBehaviour
 {
     private CharacterController player;
     private Animator pompompurinAnimator;
+    private VidaJugador vidaJugador;
 
     private float speed = 3.5f;
     private float gravity = -9.8f;
@@ -21,7 +22,7 @@ public class PompompurinController : MonoBehaviour
     public Collider[] manoColliders;
 
     public int damageGolpe1 = 10;
-    public int damageGolpe2 = 15;
+    public int damageGolpe2 = 20;
 
     public float combatRange = 2.0f;
     public LayerMask enemyLayer;
@@ -30,7 +31,10 @@ public class PompompurinController : MonoBehaviour
     public bool isAttacking = false;
 
     private int currentDamage;
-    public int life = 100;
+
+    private int golpe1Count = 0;
+    private float comboResetTime = 1.5f;
+    private float lastHitTime;
 
     private CombatManager combatManager;
 
@@ -39,17 +43,14 @@ public class PompompurinController : MonoBehaviour
         pompompurinAnimator = GetComponent<Animator>();
         player = GetComponent<CharacterController>();
         combatManager = FindObjectOfType<CombatManager>();
+        vidaJugador = GetComponent<VidaJugador>();
 
-        // Configurar los colliders de las manos
         foreach (var col in manoColliders)
         {
             col.enabled = false;
 
-            // Agregar el componente de detección de golpe si no existe
             if (col.GetComponent<PompompurinHandCollider>() == null)
-            {
                 col.gameObject.AddComponent<PompompurinHandCollider>();
-            }
         }
     }
 
@@ -59,16 +60,12 @@ public class PompompurinController : MonoBehaviour
         HandleJump();
 
         if (inCombat && !isInDialogue)
-        {
             HandleAttackInput();
-        }
 
         moveDirection = Vector3.zero;
 
         if (!isInDialogue && !isAttacking)
-        {
             HandleMovement();
-        }
 
         ApplyGravity();
         UpdateAnimator();
@@ -100,6 +97,7 @@ public class PompompurinController : MonoBehaviour
                 ref smoothVelocity,
                 smoothTime
             );
+
             transform.forward = forward;
         }
     }
@@ -171,16 +169,22 @@ public class PompompurinController : MonoBehaviour
     {
         if (isAttacking) return;
 
-        if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.R))
+        if (Time.time > lastHitTime + comboResetTime)
+            golpe1Count = 0;
+
+        if (Input.GetKeyDown(KeyCode.R) && golpe1Count >= 2)
         {
             currentDamage = damageGolpe2;
             pompompurinAnimator.SetTrigger("Attack2");
+            golpe1Count = 0;
             StartCoroutine(AttackWindow(0.25f, 0.15f));
         }
         else if (Input.GetMouseButtonDown(0))
         {
             currentDamage = damageGolpe1;
             pompompurinAnimator.SetTrigger("Attack1");
+            golpe1Count++;
+            lastHitTime = Time.time;
             StartCoroutine(AttackWindow(0.2f, 0.12f));
         }
     }
@@ -207,15 +211,12 @@ public class PompompurinController : MonoBehaviour
         pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
 
         if (isAttacking || isInDialogue)
-        {
             pompompurinAnimator.SetFloat("Speed", 0f);
-        }
         else
-        {
             pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
-        }
 
-        pompompurinAnimator.SetFloat("life", life);
+        if (vidaJugador != null)
+            pompompurinAnimator.SetFloat("life", vidaJugador.vidaActual);
     }
 
     public int GetCurrentDamage()
@@ -223,26 +224,26 @@ public class PompompurinController : MonoBehaviour
         return currentDamage;
     }
 
-    public void TakeDamage(int damage)
-    {
-        life -= damage;
-        pompompurinAnimator.SetTrigger("RecibirGolpe");
+    //public void TakeDamage(int damage)
+    //{
+    //    life -= damage;
+    //    pompompurinAnimator.SetTrigger("RecibirGolpe");
 
-        Debug.Log($"Pompompurin recibió {damage} de daño. Salud: {life}/100");
+    //    Debug.Log($"Pompompurin recibió {damage} de daño. Salud: {life}/100");
 
-        if (life <= 0)
-        {
-            life = 0;
-            Die();
-        }
-    }
+    //    if (life <= 0)
+    //    {
+    //        life = 0;
+    //        Die();
+    //    }
+    //}
 
     void Die()
     {
         pompompurinAnimator.SetBool("IsDead", true);
         Debug.Log("Pompompurin ha muerto!");
 
-        // Notificar al CombatManager
+        //Notificar al CombatManager
         if (combatManager != null)
         {
             combatManager.EndCombat(false);
@@ -269,7 +270,7 @@ public class PompompurinHandCollider : MonoBehaviour
     void Start()
     {
         playerController = GetComponentInParent<PompompurinController>();
-        
+
         if (playerController == null)
         {
             Debug.LogError($"PompompurinHandCollider en {gameObject.name} no encontró PompompurinController en el padre!");
@@ -285,23 +286,23 @@ public class PompompurinHandCollider : MonoBehaviour
     {
         if (hasHit) return; // Evitar golpes múltiples en el mismo ataque
 
-        // Verificar si golpeó al Guardian
+        //Verificar si golpeó al Guardian
         if (other.CompareTag("Enemy") || other.name.Contains("Guardian"))
         {
             if (playerController != null && playerController.isAttacking)
             {
                 GuardianController guardian = other.GetComponent<GuardianController>();
-                
+
                 if (guardian == null)
                     guardian = other.GetComponentInParent<GuardianController>();
 
-                // Verificar que el guardian puede recibir daño
+                //Verificar que el guardian puede recibir daño
                 if (guardian != null && guardian.CanReceiveDamage())
                 {
                     int damage = playerController.GetCurrentDamage();
-                    
+
                     Debug.Log($"¡Mano de Pompompurin golpeó al Guardian! Daño: {damage}");
-                    
+
                     hasHit = true;
                     playerController.NotifyHitLanded();
                 }
@@ -313,3 +314,4 @@ public class PompompurinHandCollider : MonoBehaviour
         }
     }
 }
+

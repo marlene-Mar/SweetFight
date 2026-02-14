@@ -1,97 +1,51 @@
 ﻿using UnityEngine;
-
+using System;
 
 public class VidaJugador : MonoBehaviour
 {
     public int vidaMaxima = 100;
     public int vidaActual;
 
-    public float curacionPorSegundoEnAgua = 4f;     
-    public bool estaEnAgua = false;
-
-    public float curacionFLan = 15f;            
-    public float tiempoEntreBocados = 1.2f;          
-    private float tiempoUltimoBocado;
+    public Action<int, int> OnVidaChanged;
+    public Action OnPlayerDead;
 
     void Start()
     {
         vidaActual = vidaMaxima;
+        NotificarCambio();
     }
 
-    private void Update()
+    public void RecibirDaño(int cantidad)
     {
-        // Curación pasiva cuando está en el agua
-        if (estaEnAgua && vidaActual < vidaMaxima)
-        {
-            float curacionEsteFrame = curacionPorSegundoEnAgua * Time.deltaTime;
-            Curar(curacionEsteFrame);
-        }
-    }
-    public void RecibirDaño(float cantidad)
-    {
-        vidaActual -= Mathf.RoundToInt(cantidad);
+        vidaActual -= cantidad;
         vidaActual = Mathf.Clamp(vidaActual, 0, vidaMaxima);
+
+        Debug.Log("Daño recibido: " + cantidad);
+
+        NotificarCambio();
 
         if (vidaActual <= 0)
-        {
             Morir();
-        }
     }
 
-    //public void RecibirDaño(int cantidad)
-    //{
-    //    vidaActual -= cantidad;
-
-    //    if (vidaActual <= 0)
-    //    {
-    //        Morir();
-    //    }
-    //}
-
-    public void Curar(float cantidad)
+    public void Curar(int cantidad)
     {
-        vidaActual += Mathf.RoundToInt(cantidad);
+        vidaActual += cantidad;
         vidaActual = Mathf.Clamp(vidaActual, 0, vidaMaxima);
+
+        Debug.Log("Curación: " + cantidad);
+
+        NotificarCambio();
     }
 
-    // Para usar desde otros scripts (UI, inventario, etc.)
-    public bool PuedeCurarseConItem()
+    void NotificarCambio()
     {
-        return Time.time >= tiempoUltimoBocado + tiempoEntreBocados
-            && vidaActual < vidaMaxima;
+        OnVidaChanged?.Invoke(vidaActual, vidaMaxima);
     }
 
-    //public void CurarConItem()
-    //{
-    //    if (!PuedeCurarseConItem()) return;
-
-    //    Curar(curacionFlan);
-    //    tiempoUltimoBocado = Time.time;
-
-    //    // Aquí puedes restar 1 del inventario (lo veremos más abajo)
-    //    Debug.Log("¡Curado con recurso! +" + curacionFlan);
-    //}
-
-    private void Morir()
+    void Morir()
     {
-        Debug.Log("¡Has muerto!");
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Water"))
-        {
-            estaEnAgua = true;
-            Debug.Log("Entraste al agua → curación pasiva activada");
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag(""))
-        {
-            estaEnAgua = false;
-            Debug.Log("Saliste del agua");
-        }
+        Debug.Log("Jugador murió");
+        OnPlayerDead?.Invoke();
     }
 }

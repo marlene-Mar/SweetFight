@@ -243,10 +243,11 @@ public class UIManager : MonoBehaviour
         Salir();
     }
 
-    public void ActMapa()
+    public void EdoMapa()
     {
-        PanelMap.SetActive(true);
+        PanelMap.SetActive(!PanelMap.activeSelf);
     }
+
     // =========AUDIO=========
 
     public void IncreaseMusic() => ChangeMusicVolume(1);

@@ -20,6 +20,9 @@ public class DialogueManager : MonoBehaviour
     private int currentDialogueIndex = 0;
     private bool isTyping = false;
 
+    public GameObject freeLookCamera;
+    public GameObject dialogueCamera;
+
     [System.Serializable]
     public class DialogueLine
     {
@@ -65,6 +68,9 @@ public class DialogueManager : MonoBehaviour
 
     public void StartGuardianDialogue(GuardianController guardian)
     {
+        freeLookCamera.SetActive(false);
+        dialogueCamera.SetActive(true);
+
         currentGuardian = guardian;
         currentDialogueIndex = 0;
 
@@ -181,6 +187,9 @@ public class DialogueManager : MonoBehaviour
 
     void EndDialogue()
     {
+        freeLookCamera.SetActive(true);
+        dialogueCamera.SetActive(false);
+
         // Avisar al guardián primero
         if (currentGuardian != null)
         {
@@ -201,8 +210,39 @@ public class DialogueManager : MonoBehaviour
 
     void StartCombat()
     {
-        // Aquí puedes activar combate si quieres después
-        // if (currentGuardian != null)
-        //     currentGuardian.StartCombat();
+        if (currentGuardian != null && playerController != null)
+        {
+            CombatManager cm = FindObjectOfType<CombatManager>();
+            cm.StartCombat(currentGuardian, playerController);
+            playerController.StartCombatAfterDialogue();
+        }
     }
 }
+
+//using UnityEngine;
+
+//public class DialogueManager : MonoBehaviour
+//{
+//    public GameObject dialoguePanel;
+
+//    private GuardianController currentGuardian;
+
+//    public void StartGuardianDialogue(GuardianController guardian)
+//    {
+//        currentGuardian = guardian;
+
+//        dialoguePanel.SetActive(true);
+
+//        GameFlowManager.Instance.ChangeState(GameState.Dialogue);
+//    }
+
+//    public void EndDialogue()
+//    {
+//        dialoguePanel.SetActive(false);
+
+//        GameFlowManager.Instance.combatManager.StartCombat(
+//            currentGuardian,
+//            GameFlowManager.Instance.player
+//        );
+//    }
+//}
