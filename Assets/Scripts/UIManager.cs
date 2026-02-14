@@ -55,7 +55,6 @@ public class UIManager : MonoBehaviour
         Game
     }
 
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -218,14 +217,12 @@ public class UIManager : MonoBehaviour
         Configuracion.SetActive(true);
     }
 
-
     public void PausarJuego()
     {
         if (PausaPanel.activeSelf) return;
         PausaPanel.SetActive(true);
         gameManager.PlayMusicByState(GameManager.GameState.Pausa);
-        Time.timeScale = 0f;
-        
+        Time.timeScale = 0f;      
     }
 
     public void ReanudarJuego()

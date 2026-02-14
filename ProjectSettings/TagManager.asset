@@ -8,6 +8,9 @@ TagManager:
   - ManoDer
   - Flan
   - Lanza
+  - Enemy
+  - Guardian
+  - Water
   layers:
   - Default
   - TransparentFX

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+
 public class VidaJugador : MonoBehaviour
 {
     public int vidaMaxima = 100;

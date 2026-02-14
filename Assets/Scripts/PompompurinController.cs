@@ -6,7 +6,7 @@ public class PompompurinController : MonoBehaviour
     private CharacterController player;
     private Animator pompompurinAnimator;
 
-    private float speed = 2.5f;
+    private float speed = 3.5f;
     private float gravity = -9.8f;
     private float jumpForce = 4.5f;
 
@@ -251,44 +251,64 @@ public class PompompurinController : MonoBehaviour
         enabled = false;
     }
 
-    // Método público para que los colliders de las manos notifiquen golpes
     public void NotifyHitLanded()
     {
-        if (combatManager != null)
+        if (combatManager != null && isAttacking)
         {
+            Debug.Log($"Pompompurin: Notificando golpe con daño {currentDamage}");
             combatManager.OnPlayerHit(currentDamage);
         }
     }
 }
 
-// CLASE AUXILIAR PARA LOS COLLIDERS DE LAS MANOS
 public class PompompurinHandCollider : MonoBehaviour
 {
     private PompompurinController playerController;
+    private bool hasHit = false; // Evitar múltiples hits
 
     void Start()
     {
         playerController = GetComponentInParent<PompompurinController>();
-
+        
         if (playerController == null)
         {
             Debug.LogError($"PompompurinHandCollider en {gameObject.name} no encontró PompompurinController en el padre!");
         }
     }
 
+    void OnEnable()
+    {
+        hasHit = false; // Resetear cuando se activa el collider
+    }
+
     void OnTriggerEnter(Collider other)
     {
+        if (hasHit) return; // Evitar golpes múltiples en el mismo ataque
+
         // Verificar si golpeó al Guardian
         if (other.CompareTag("Enemy") || other.name.Contains("Guardian"))
         {
             if (playerController != null && playerController.isAttacking)
             {
-                int damage = playerController.GetCurrentDamage();
+                GuardianController guardian = other.GetComponent<GuardianController>();
+                
+                if (guardian == null)
+                    guardian = other.GetComponentInParent<GuardianController>();
 
-                Debug.Log($"¡Mano de Pompompurin golpeó al Guardian! Daño: {damage}");
-
-                // Notificar al controlador principal
-                playerController.NotifyHitLanded();
+                // Verificar que el guardian puede recibir daño
+                if (guardian != null && guardian.CanReceiveDamage())
+                {
+                    int damage = playerController.GetCurrentDamage();
+                    
+                    Debug.Log($"¡Mano de Pompompurin golpeó al Guardian! Daño: {damage}");
+                    
+                    hasHit = true;
+                    playerController.NotifyHitLanded();
+                }
+                else if (guardian != null)
+                {
+                    Debug.Log("Guardian no puede recibir daño en este momento");
+                }
             }
         }
     }
