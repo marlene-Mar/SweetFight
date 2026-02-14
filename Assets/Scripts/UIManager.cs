@@ -47,6 +47,11 @@ public class UIManager : MonoBehaviour
     private int musicLevel = 5;
     private int sfxLevel = 5;
 
+    // ==============================
+    // TIMER
+    // ==============================
+    public TextMeshProUGUI timerText;
+
     private ConfigSource configSource;
 
     public enum ConfigSource
@@ -278,4 +283,14 @@ public class UIManager : MonoBehaviour
         return Mathf.Log10(value) * 20;
     }
 
+    // ========== TIMER ============
+
+    public void UpdateTimer(float time)
+    {
+        if (timerText == null) return;
+
+        int minutes = Mathf.FloorToInt(time / 40);
+        int seconds = Mathf.FloorToInt(time % 40);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
 }

@@ -1,15 +1,20 @@
 using UnityEngine;
+using System.Collections;
 
 public class CombatManager : MonoBehaviour
 {
     [Header("Configuración de Combate")]
     public GameObject combatUI;
+    public UIManager uiManager;
     private GuardianController currentEnemy;
     private PompompurinController player;
     private int playerHitsLanded = 0;
     private int guardianHitsLanded = 0;
     private int totalDamageDealt = 0;
     private int totalDamageTaken = 0;
+
+    private float combatTimer = 40f;
+    private bool timerRunning = false;
 
     void Start()
     {
@@ -25,10 +30,15 @@ public class CombatManager : MonoBehaviour
         guardianHitsLanded = 0;
         totalDamageDealt = 0;
         totalDamageTaken = 0;
+
         Debug.Log("¡Combate iniciado con el Guardian!");
+
         if (combatUI != null)
             combatUI.SetActive(true);
+
         InitializeCombat();
+
+        StartCoroutine(CombatTimer());
     }
 
     void InitializeCombat()
@@ -75,17 +85,37 @@ public class CombatManager : MonoBehaviour
 
     public void EndCombat(bool playerWon)
     {
+        if (timerRunning)
+            StopAllCoroutines();
+
+        timerRunning = false;
+
         Debug.Log(playerWon ? "¡Victoria!" : "Derrota...");
+
         ShowCombatStats();
+
         if (combatUI != null)
             combatUI.SetActive(false);
-        if (playerWon)
+
+        // Reset jugador
+        if (player != null)
+            player.ExitCombat();
+
+        // Reset guardián
+        if (currentEnemy != null)
         {
-            OnPlayerVictory();
-        }
-        else
-        {
-            OnPlayerDefeat();
+            // Reactivar NavMeshAgent
+            var nav = currentEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (nav != null)
+            {
+                nav.isStopped = false;
+            }
+
+            //// Reset flag de combate en guardián si existe
+            //currentEnemy.GuardianState.Combat = false;
+
+            // Llamar a método de patrullaje
+            currentEnemy.PatrolBehaviour();
         }
     }
 
@@ -123,7 +153,6 @@ public class CombatManager : MonoBehaviour
         }
         if (currentEnemy != null)
         {
-            // Opcional: currentEnemy.ResumePatrol();  // Si Guardian tiene este método
             UnityEngine.AI.NavMeshAgent nav = currentEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
             if (nav != null) nav.isStopped = false;
         }
@@ -133,58 +162,23 @@ public class CombatManager : MonoBehaviour
     public int GetGuardianHits() => guardianHitsLanded;
     public int GetTotalDamageDealt() => totalDamageDealt;
     public int GetTotalDamageTaken() => totalDamageTaken;
+    
+    private IEnumerator CombatTimer()
+    {
+        timerRunning = true;
+        combatTimer = 40f; 
+
+        while (combatTimer > 0f)
+        {
+            combatTimer -= Time.deltaTime; // o Time.unscaledDeltaTime si pausas el juego
+            UIManager.Instance.UpdateTimer(combatTimer);
+            yield return null;
+        }
+
+        timerRunning = false;
+
+        Debug.Log("Tiempo terminado, finaliza combate");
+        EndCombat(false); // termina el combate automáticamente
+    }
 }
 
-//using UnityEngine;
-
-//public class CombatManager : MonoBehaviour
-//{
-//    public GameObject combatUI;
-
-//    private GuardianController currentEnemy;
-//    private PompompurinController player;
-
-//    void Start()
-//    {
-//        if (combatUI != null)
-//            combatUI.SetActive(false);
-//    }
-
-//    public void StartCombat(GuardianController guardian, PompompurinController pompompurin)
-//    {
-//        currentEnemy = guardian;
-//        player = pompompurin;
-
-//        if (combatUI != null)
-//            combatUI.SetActive(true);
-
-//        GameFlowManager.Instance.ChangeState(GameState.Combat);
-//    }
-
-//    public void OnPlayerHit(int damage)
-//    {
-//        if (currentEnemy != null)
-//            currentEnemy.TakeDamage(damage);
-//    }
-
-//    public void EndCombat(bool playerWon)
-//    {
-//        if (combatUI != null)
-//            combatUI.SetActive(false);
-
-//        GameFlowManager.Instance.ChangeState(GameState.Exploration);
-//    }
-
-//    public void OnGuardianHit(int damage)
-//    {
-//        if (GameFlowManager.Instance.player != null)
-//        {
-//            VidaJugador vida = GameFlowManager.Instance.player.GetComponent<VidaJugador>();
-
-//            if (vida != null)
-//            {
-//                vida.RecibirDaño(damage);
-//            }
-//        }
-//    }
-//}

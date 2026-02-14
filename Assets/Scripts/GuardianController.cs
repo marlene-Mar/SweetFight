@@ -130,7 +130,8 @@ public class GuardianController : MonoBehaviour
         }
     }
 
-    void PatrolBehaviour()
+    // COMPORTAMIENTO DE PATRULLA
+    public void PatrolBehaviour()
     {
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
@@ -149,7 +150,8 @@ public class GuardianController : MonoBehaviour
         }
     }
 
-    void MoveToRandomPoint()
+    // MOVERSE A UN PUNTO ALEATORIO DENTRO DEL RADIO DE PATRULLA
+    public void MoveToRandomPoint()
     {
         Vector3 randomDirection = Random.insideUnitSphere * patrolRadius;
         randomDirection += transform.position;
@@ -220,7 +222,7 @@ public class GuardianController : MonoBehaviour
         StartCombat();
     }
 
-    void StartCombat()
+    public void StartCombat()
     {
         Debug.Log("Guardian: Iniciando combate");
 
@@ -568,47 +570,3 @@ public class GuardianWeaponCollider : MonoBehaviour
         }
     }
 }
-
-//using UnityEngine;
-
-//public class GuardianController : MonoBehaviour
-//{
-//    public int life = 100;
-
-//    private MeshCollider[] validSurfaces;
-//    private Transform player;
-
-//    public void Initialize(MeshCollider[] surfaces, Transform playerTransform)
-//    {
-//        validSurfaces = surfaces;
-//        player = playerTransform;
-
-//        Debug.Log($"Guardian inicializado. Player asignado: {player != null}");
-//    }
-
-//    public void StartGreeting()
-//    {
-//        GameFlowManager.Instance.ChangeState(GameState.Greeting);
-//    }
-
-//    public void StartDialogue()
-//    {
-//        GameFlowManager.Instance.dialogueManager.StartGuardianDialogue(this);
-//    }
-
-//    public void TakeDamage(int damage)
-//    {
-//        life -= damage;
-
-//        if (life <= 0)
-//        {
-//            life = 0;
-//            Die();
-//        }
-//    }
-
-//    void Die()
-//    {
-//        GameFlowManager.Instance.combatManager.EndCombat(true);
-//    }
-//}
