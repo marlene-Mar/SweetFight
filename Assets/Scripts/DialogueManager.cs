@@ -218,31 +218,3 @@ public class DialogueManager : MonoBehaviour
         }
     }
 }
-
-//using UnityEngine;
-
-//public class DialogueManager : MonoBehaviour
-//{
-//    public GameObject dialoguePanel;
-
-//    private GuardianController currentGuardian;
-
-//    public void StartGuardianDialogue(GuardianController guardian)
-//    {
-//        currentGuardian = guardian;
-
-//        dialoguePanel.SetActive(true);
-
-//        GameFlowManager.Instance.ChangeState(GameState.Dialogue);
-//    }
-
-//    public void EndDialogue()
-//    {
-//        dialoguePanel.SetActive(false);
-
-//        GameFlowManager.Instance.combatManager.StartCombat(
-//            currentGuardian,
-//            GameFlowManager.Instance.player
-//        );
-//    }
-//}

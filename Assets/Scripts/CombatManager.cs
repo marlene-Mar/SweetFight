@@ -162,11 +162,11 @@ public class CombatManager : MonoBehaviour
     public int GetGuardianHits() => guardianHitsLanded;
     public int GetTotalDamageDealt() => totalDamageDealt;
     public int GetTotalDamageTaken() => totalDamageTaken;
-    
+
     private IEnumerator CombatTimer()
     {
         timerRunning = true;
-        combatTimer = 40f; 
+        combatTimer = 40f;
 
         while (combatTimer > 0f)
         {
@@ -181,4 +181,3 @@ public class CombatManager : MonoBehaviour
         EndCombat(false); // termina el combate automáticamente
     }
 }
-

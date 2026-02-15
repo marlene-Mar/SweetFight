@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 
@@ -17,13 +17,13 @@ public class GuardianController : MonoBehaviour
     public float waitTimeBetweenPoints = 1.5f;
     public float detectionDistance = 5f;
 
-    // Configuración de combate
+    // Configuraciï¿½n de combate
     public float timeBetweenAttacks = 2f;
     private float attackTimer = 0f;
     private bool isAttacking = false;
-    private bool canReceiveDamage = false; // NUEVO: Controlar cuándo puede recibir daño
+    private bool canReceiveDamage = false; // NUEVO: Controlar cuï¿½ndo puede recibir daï¿½o
 
-    // Salud del guardián
+    // Salud del guardiï¿½n
     public int maxHealth = 100;
     private int currentHealth;
 
@@ -31,7 +31,7 @@ public class GuardianController : MonoBehaviour
     public Collider weaponCollider;
     public int weaponDamage = 15;
 
-    // Configuración de aliado
+    // Configuraciï¿½n de aliado
     public float allyDuration = 60f;
     public float followDistance = 3f;
     public float allyDetectionRange = 10f;
@@ -84,7 +84,7 @@ public class GuardianController : MonoBehaviour
             }
         }
 
-        // Asegurarse de que el arma esté desactivada al inicio
+        // Asegurarse de que el arma estï¿½ desactivada al inicio
         if (weaponObject != null)
             weaponObject.SetActive(false);
     }
@@ -227,10 +227,10 @@ public class GuardianController : MonoBehaviour
         Debug.Log("Guardian: Iniciando combate");
 
         animator.SetBool("InCombat", true);
-        canReceiveDamage = true; // ACTIVAR daño después de iniciar combate
+        canReceiveDamage = true; // ACTIVAR daï¿½o despuï¿½s de iniciar combate
         attackTimer = 0f;
 
-        // Pequeño delay antes del primer ataque
+        // Pequeï¿½o delay antes del primer ataque
         Invoke(nameof(ExecuteAttack), 0.5f);
     }
 
@@ -289,7 +289,7 @@ public class GuardianController : MonoBehaviour
             if (weaponObject != null)
                 weaponObject.SetActive(true);
 
-            Debug.Log($"¡Guardian detectó enemigo: {currentEnemyTarget.name}! Entrando en combate.");
+            Debug.Log($"ï¿½Guardian detectï¿½ enemigo: {currentEnemyTarget.name}! Entrando en combate.");
         }
         else
         {
@@ -374,16 +374,16 @@ public class GuardianController : MonoBehaviour
         allyTimer = 0f;
         currentState = GuardianState.Ally;
         animator.SetBool("InCombat", false);
-        animator.SetBool("Die", false); // Resetear animación de muerte
+        animator.SetBool("Die", false); // Resetear animaciï¿½n de muerte
         agent.isStopped = false;
-        canReceiveDamage = false; // Ya no recibe daño del jugador
+        canReceiveDamage = false; // Ya no recibe daï¿½o del jugador
 
         gameObject.tag = "Guardian";
 
         if (weaponObject != null)
             weaponObject.SetActive(false);
 
-        Debug.Log($"¡Guardian se ha unido a tu equipo por {allyDuration} segundos!");
+        Debug.Log($"ï¿½Guardian se ha unido a tu equipo por {allyDuration} segundos!");
 
         StartCoroutine(ShowAllyMessage());
     }
@@ -391,9 +391,9 @@ public class GuardianController : MonoBehaviour
     IEnumerator ShowAllyMessage()
     {
         Debug.Log("=== EL GUARDIAN ES AHORA TU ALIADO ===");
-        Debug.Log("Te protegerá de enemigos durante 1 minuto.");
+        Debug.Log("Te protegerï¿½ de enemigos durante 1 minuto.");
         yield return new WaitForSeconds(allyDuration - 10f);
-        Debug.Log("¡El Guardian te abandonará en 10 segundos!");
+        Debug.Log("ï¿½El Guardian te abandonarï¿½ en 10 segundos!");
         yield return new WaitForSeconds(10f);
     }
 
@@ -433,7 +433,7 @@ public class GuardianController : MonoBehaviour
     {
         if (isAlly && currentState == GuardianState.AllyDefending)
         {
-            Debug.Log("¡Guardian aliado golpeó a un enemigo!");
+            Debug.Log("ï¿½Guardian aliado golpeï¿½ a un enemigo!");
         }
         else if (!isAlly && combatManager != null)
         {
@@ -443,24 +443,24 @@ public class GuardianController : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        // VERIFICAR si puede recibir daño
+        // VERIFICAR si puede recibir daï¿½o
         if (!canReceiveDamage)
         {
-            Debug.Log("Guardian: No puede recibir daño aún (no está en combate)");
+            Debug.Log("Guardian: No puede recibir daï¿½o aï¿½n (no estï¿½ en combate)");
             return;
         }
 
         if (currentState != GuardianState.Combat)
         {
-            Debug.Log("Guardian: No puede recibir daño (no está en estado de combate)");
+            Debug.Log("Guardian: No puede recibir daï¿½o (no estï¿½ en estado de combate)");
             return;
         }
 
         currentHealth -= damage;
-        Debug.Log($"Guardian recibió {damage} de daño. Salud: {currentHealth}/{maxHealth}");
+        Debug.Log($"Guardian recibiï¿½ {damage} de daï¿½o. Salud: {currentHealth}/{maxHealth}");
 
-        // NO disparar trigger de golpe aquí, solo la animación de recibir daño si existe
-        // animator.SetTrigger("RecibirGolpe"); // Agregar este trigger en el animator si existe
+        // NO disparar trigger de golpe aquï¿½, solo la animaciï¿½n de recibir daï¿½o si existe
+        animator.SetTrigger("GolpeP"); // Agregar este trigger en el animator si existe
 
         if (currentHealth <= 0)
         {
@@ -544,7 +544,7 @@ public class GuardianWeaponCollider : MonoBehaviour
 
         if (guardianController == null)
         {
-            Debug.LogError($"GuardianWeaponCollider en {gameObject.name} no encontró GuardianController en el padre!");
+            Debug.LogError($"GuardianWeaponCollider en {gameObject.name} no encontrï¿½ GuardianController en el padre!");
         }
     }
 
@@ -556,7 +556,7 @@ public class GuardianWeaponCollider : MonoBehaviour
         {
             if (other.CompareTag("Enemy"))
             {
-                Debug.Log($"¡Guardian aliado golpeó a enemigo: {other.name}!");
+                Debug.Log($"ï¿½Guardian aliado golpeï¿½ a enemigo: {other.name}!");
                 guardianController.NotifyWeaponHit();
             }
         }
@@ -564,7 +564,7 @@ public class GuardianWeaponCollider : MonoBehaviour
         {
             if (other.CompareTag("Player") || other.name.Contains("Pompompurin"))
             {
-                Debug.Log($"¡Lanza del Guardian golpeó a {other.name}!");
+                Debug.Log($"ï¿½Lanza del Guardian golpeï¿½ a {other.name}!");
                 guardianController.NotifyWeaponHit();
             }
         }

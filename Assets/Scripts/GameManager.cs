@@ -47,30 +47,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    //void Update()
-    //{
-    //    if (vidaJugador != null)
-    //    {
-    //        currentHealth = vidaJugador.vidaActual;
-    //    }
-
-    //    if (!Mathf.Approximately(displayHealth, currentHealth))
-    //    {
-    //        displayHealth = Mathf.Lerp(displayHealth, currentHealth, Time.deltaTime * smoothSpeed);
-    //        UpdateUI();
-    //    }
-
-    //}
-
-    //JUEGO: BARRAS VIDA, CANDYCOINDS, VIDA CAMEMI, CHEEDOR, RATBOOT
-    //void UpdateUI()
-    //{
-    //    if (healthPompompurinBar != null)
-    //    {
-    //        healthPompompurinBar.fillAmount = displayHealth / maxHealth; 
-    //    }
-
-    //}
 
     void UpdateHealthBar(int vidaActual, int vidaMaxima)
     {
