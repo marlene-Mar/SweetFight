@@ -89,7 +89,7 @@ public class DialogueManager : MonoBehaviour
             playerController = player.GetComponent<PompompurinController>();
             if (playerController != null)
             {
-                playerController.EnterDialogue();  // ← Activar estado de diálogo
+                playerController.EnterDialogue(); 
                 playerController.enabled = false;
             }
         }
@@ -102,8 +102,8 @@ public class DialogueManager : MonoBehaviour
         {
             if (playerController != null)
             {
-                playerController.ExitDialogue();    // ← Primero salir del diálogo
-                playerController.enabled = true;     // ← Luego habilitar el script
+                playerController.ExitDialogue();   
+                playerController.enabled = true;     
             }
         }
     }
@@ -177,7 +177,7 @@ public class DialogueManager : MonoBehaviour
         if (currentDialogueIndex >= guardianConversation.Count)
         {
             EndDialogue();
-            StartCombat();
+            //StartCombat();
         }
         else
         {
@@ -206,15 +206,5 @@ public class DialogueManager : MonoBehaviour
 
         // Devolver controles
         EnablePlayerControls();
-    }
-
-    void StartCombat()
-    {
-        if (currentGuardian != null && playerController != null)
-        {
-            CombatManager cm = FindObjectOfType<CombatManager>();
-            cm.StartCombat(currentGuardian, playerController);
-            playerController.StartCombatAfterDialogue();
-        }
     }
 }

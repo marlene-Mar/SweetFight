@@ -309,9 +309,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3287035202303811124}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6072016356194931717}
   m_SourcePrefab: {fileID: 100100000, guid: 8374e12f18f28664781e79de0926e693, type: 3}
 --- !u!1 &2822950619388431275 stripped
 GameObject:
@@ -342,7 +339,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: -0.1, y: 1.65, z: 0}
+  m_Center: {x: -0.1, y: 1.5, z: 0}
 --- !u!136 &7529985208054572168
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -365,7 +362,7 @@ CapsuleCollider:
   m_Radius: 0.9
   m_Height: 3.4313555
   m_Direction: 1
-  m_Center: {x: -0.100000024, y: 1.6093221, z: -0}
+  m_Center: {x: -0.100000024, y: 1.5, z: -0}
 --- !u!195 &5915764144654596028
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -404,32 +401,20 @@ MonoBehaviour:
   waitTimeBetweenPoints: 1.5
   detectionDistance: 5
   timeBetweenAttacks: 2
-  maxHealth: 100
+  maxHealth: 50
   weaponObject: {fileID: 7228315001083949720}
   weaponCollider: {fileID: 7480992279374681197}
-  weaponDamage: 15
+  weaponDamage: 10
   allyDuration: 60
   followDistance: 1.5
   allyDetectionRange: 10
   enemyLayer:
     serializedVersion: 2
     m_Bits: 520
---- !u!114 &6072016356194931717
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2822950619388431275}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a04e8f12bcc3f7446825dc05e38d730b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyContactDamage
-  damagePerTick: 8
-  damageInterval: 0.8
-  initialContactDamage: 12
-  respectDialogueOrInvincibility: 1
+  interactionCooldown: 15
+  playerNearby: 0
+  weaponActivationDelay: 0.3
+  weaponActiveDuration: 0.5
 --- !u!4 &3199510723708162321 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8374e12f18f28664781e79de0926e693, type: 3}
@@ -462,31 +447,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.12654187
+      value: -0.10445223
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.0874435
+      value: 0.092288814
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.7931264
+      value: -0.83356017
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.58931434
+      value: 0.5345559
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 65.877
+      value: 60.679
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -228.015
+      value: -213.854
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: -44.775
+      value: -32.835
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 04fb7a4642a7d7d4a84b8e50178e7025, type: 3}
       propertyPath: m_Name
@@ -528,11 +513,11 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.35
+  m_Radius: 0.45
   m_Height: 3.85
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0.9}

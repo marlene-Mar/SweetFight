@@ -12,26 +12,26 @@ public class GuardianController : MonoBehaviour
     private DialogueManager dialogueManager;
     private CombatManager combatManager;
 
-    //Patrulla
+    // Patrulla
     public float patrolRadius = 25f;
     public float waitTimeBetweenPoints = 1.5f;
     public float detectionDistance = 5f;
 
-    // Configuraci�n de combate
+    // Configuración de combate
     public float timeBetweenAttacks = 2f;
     private float attackTimer = 0f;
     private bool isAttacking = false;
-    private bool canReceiveDamage = false; // NUEVO: Controlar cu�ndo puede recibir da�o
+    private bool canReceiveDamage = false;
 
-    // Salud del guardi�n
-    public int maxHealth = 100;
+    // Salud del guardián
+    public int maxHealth = 50;
     private int currentHealth;
 
     public GameObject weaponObject;
     public Collider weaponCollider;
-    public int weaponDamage = 15;
+    public int weaponDamage = 10;
 
-    // Configuraci�n de aliado
+    // Configuración de aliado
     public float allyDuration = 60f;
     public float followDistance = 3f;
     public float allyDetectionRange = 10f;
@@ -41,8 +41,15 @@ public class GuardianController : MonoBehaviour
 
     private float waitTimer;
     private bool hasDestination;
+    private bool canInteract = true;
+    public float interactionCooldown = 15f;
 
     public bool playerNearby;
+
+    // FIX: Ajusta estos valores según el timing de tu animación de ataque
+    [Header("Weapon Timing")]
+    public float weaponActivationDelay = 0.3f;   // segundos tras lanzar el trigger hasta activar el collider
+    public float weaponActiveDuration = 0.5f;     // segundos que el collider permanece activo
 
     private enum GuardianState
     {
@@ -56,6 +63,7 @@ public class GuardianController : MonoBehaviour
 
     private GuardianState currentState;
     private Transform currentEnemyTarget;
+    public System.Action<int, int> OnVidaChanged;
 
     void Awake()
     {
@@ -84,9 +92,14 @@ public class GuardianController : MonoBehaviour
             }
         }
 
-        // Asegurarse de que el arma est� desactivada al inicio
         if (weaponObject != null)
             weaponObject.SetActive(false);
+
+        GameManager gm = FindObjectOfType<GameManager>();
+        if (gm != null)
+        {
+            OnVidaChanged += gm.UpdateHealthBarGuardian; // necesitas hacer el método público
+        }
     }
 
     public void Initialize(MeshCollider[] surfaces, Transform playerTransform)
@@ -166,6 +179,9 @@ public class GuardianController : MonoBehaviour
 
     void DetectPlayer()
     {
+        if (!canInteract) return;
+        if (currentState != GuardianState.Patrolling) return;
+
         float distance = Vector3.Distance(transform.position, player.position);
 
         if (distance <= detectionDistance)
@@ -176,6 +192,10 @@ public class GuardianController : MonoBehaviour
 
     void StartGreeting()
     {
+        if (!canInteract) return;
+
+        canInteract = false;
+
         currentState = GuardianState.Greeting;
         agent.isStopped = true;
         SetWalk(false);
@@ -183,9 +203,7 @@ public class GuardianController : MonoBehaviour
         animator.SetBool("isGreeting", true);
 
         if (playerController != null)
-        {
             playerController.EnterDialogue();
-        }
 
         Invoke(nameof(StartDialogue), 2f);
     }
@@ -213,7 +231,8 @@ public class GuardianController : MonoBehaviour
 
         if (combatManager != null)
         {
-            combatManager.StartCombat(this, playerController);
+            PompompurinController playerRef = FindObjectOfType<PompompurinController>();
+            combatManager.StartCombat(this, playerRef);
         }
 
         if (weaponObject != null)
@@ -227,10 +246,9 @@ public class GuardianController : MonoBehaviour
         Debug.Log("Guardian: Iniciando combate");
 
         animator.SetBool("InCombat", true);
-        canReceiveDamage = true; // ACTIVAR da�o despu�s de iniciar combate
+        canReceiveDamage = true;
         attackTimer = 0f;
 
-        // Peque�o delay antes del primer ataque
         Invoke(nameof(ExecuteAttack), 0.5f);
     }
 
@@ -250,15 +268,39 @@ public class GuardianController : MonoBehaviour
 
     void ExecuteAttack()
     {
-        if (currentState != GuardianState.Combat && currentState != GuardianState.AllyDefending)
+        if (currentState != GuardianState.Combat &&
+            currentState != GuardianState.AllyDefending)
             return;
 
         isAttacking = true;
-        animator.SetTrigger("GolpeP");
+        attackTimer = 0f;
+
+        animator.SetTrigger("Attack");
 
         Debug.Log("Guardian: Ejecutando ataque");
 
-        Invoke(nameof(EndAttack), 1f);
+        // Activar el collider del arma con delay para sincronizar con la animación
+        StartCoroutine(ActivateWeaponCollider(weaponActivationDelay, weaponActiveDuration));
+
+        // Resetear isAttacking tras el tiempo entre ataques
+        StartCoroutine(AttackCooldown());
+    }
+
+    IEnumerator ActivateWeaponCollider(float delayBeforeEnable, float duration)
+    {
+        yield return new WaitForSeconds(delayBeforeEnable);
+
+        // Resetear hasHit antes de cada swing para que cada ataque pueda hacer daño
+        if (weaponCollider != null)
+        {
+            GuardianWeaponCollider gwc = weaponCollider.GetComponent<GuardianWeaponCollider>();
+            if (gwc != null) gwc.ResetHit();
+        }
+
+        EnableWeaponCollider();
+
+        yield return new WaitForSeconds(duration);
+        DisableWeaponCollider();
     }
 
     void EndAttack()
@@ -289,7 +331,7 @@ public class GuardianController : MonoBehaviour
             if (weaponObject != null)
                 weaponObject.SetActive(true);
 
-            Debug.Log($"�Guardian detect� enemigo: {currentEnemyTarget.name}! Entrando en combate.");
+            Debug.Log($"¡Guardian detectó enemigo: {currentEnemyTarget.name}! Entrando en combate.");
         }
         else
         {
@@ -374,16 +416,16 @@ public class GuardianController : MonoBehaviour
         allyTimer = 0f;
         currentState = GuardianState.Ally;
         animator.SetBool("InCombat", false);
-        animator.SetBool("Die", false); // Resetear animaci�n de muerte
+        animator.SetBool("Die", false);
         agent.isStopped = false;
-        canReceiveDamage = false; // Ya no recibe da�o del jugador
+        canReceiveDamage = false;
 
         gameObject.tag = "Guardian";
 
         if (weaponObject != null)
             weaponObject.SetActive(false);
 
-        Debug.Log($"�Guardian se ha unido a tu equipo por {allyDuration} segundos!");
+        Debug.Log($"¡Guardian se ha unido a tu equipo por {allyDuration} segundos!");
 
         StartCoroutine(ShowAllyMessage());
     }
@@ -391,9 +433,9 @@ public class GuardianController : MonoBehaviour
     IEnumerator ShowAllyMessage()
     {
         Debug.Log("=== EL GUARDIAN ES AHORA TU ALIADO ===");
-        Debug.Log("Te proteger� de enemigos durante 1 minuto.");
+        Debug.Log("Te protegerá de enemigos durante 1 minuto.");
         yield return new WaitForSeconds(allyDuration - 10f);
-        Debug.Log("�El Guardian te abandonar� en 10 segundos!");
+        Debug.Log("¡El Guardian te abandonará en 10 segundos!");
         yield return new WaitForSeconds(10f);
     }
 
@@ -409,6 +451,8 @@ public class GuardianController : MonoBehaviour
         Debug.Log("El Guardian ha dejado de ser tu aliado y vuelve a patrullar.");
 
         currentHealth = maxHealth;
+
+        StartCoroutine(ResetInteraction());
     }
 
     public void EnableWeaponCollider()
@@ -433,7 +477,7 @@ public class GuardianController : MonoBehaviour
     {
         if (isAlly && currentState == GuardianState.AllyDefending)
         {
-            Debug.Log("�Guardian aliado golpe� a un enemigo!");
+            Debug.Log("¡Guardian aliado golpeó a un enemigo!");
         }
         else if (!isAlly && combatManager != null)
         {
@@ -443,26 +487,15 @@ public class GuardianController : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        // VERIFICAR si puede recibir da�o
-        if (!canReceiveDamage)
-        {
-            Debug.Log("Guardian: No puede recibir da�o a�n (no est� en combate)");
-            return;
-        }
-
-        if (currentState != GuardianState.Combat)
-        {
-            Debug.Log("Guardian: No puede recibir da�o (no est� en estado de combate)");
-            return;
-        }
-
         currentHealth -= damage;
-        Debug.Log($"Guardian recibi� {damage} de da�o. Salud: {currentHealth}/{maxHealth}");
 
-        // NO disparar trigger de golpe aqu�, solo la animaci�n de recibir da�o si existe
-        animator.SetTrigger("GolpeP"); // Agregar este trigger en el animator si existe
+        if (currentHealth < 0)
+            currentHealth = 0;
 
-        if (currentHealth <= 0)
+        Debug.Log($"Guardian vida: {currentHealth}/{maxHealth}");
+        OnVidaChanged?.Invoke(currentHealth, maxHealth);
+
+        if (currentHealth == 0)
         {
             Die();
         }
@@ -516,6 +549,15 @@ public class GuardianController : MonoBehaviour
 
         if (weaponObject != null)
             weaponObject.SetActive(false);
+
+        MoveToRandomPoint();
+        StartCoroutine(ResetInteraction());
+    }
+
+    IEnumerator ResetInteraction()
+    {
+        yield return new WaitForSeconds(interactionCooldown);
+        canInteract = true;
     }
 
     public int GetCurrentHealth()
@@ -532,40 +574,69 @@ public class GuardianController : MonoBehaviour
     {
         return canReceiveDamage;
     }
+
+    IEnumerator AttackCooldown()
+    {
+        yield return new WaitForSeconds(timeBetweenAttacks);
+        isAttacking = false;
+    }
 }
 
 public class GuardianWeaponCollider : MonoBehaviour
 {
     private GuardianController guardianController;
+    private CombatManager combatManager;
+
+    [SerializeField] private int damage = 10;
+    private bool hasHit = false;
 
     void Start()
     {
         guardianController = GetComponentInParent<GuardianController>();
+        combatManager = FindObjectOfType<CombatManager>();
 
         if (guardianController == null)
         {
-            Debug.LogError($"GuardianWeaponCollider en {gameObject.name} no encontr� GuardianController en el padre!");
+            Debug.LogError($"GuardianWeaponCollider en {gameObject.name} no encontró GuardianController en el padre!");
         }
+
+        if (combatManager == null)
+        {
+            Debug.LogError("No se encontró CombatManager en la escena!");
+        }
+    }
+    void OnEnable()
+    {
+        hasHit = false;
+    }
+
+    public void ResetHit()
+    {
+        hasHit = false;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (guardianController == null) return;
+        if (guardianController == null || combatManager == null) return;
+        if (hasHit) return;
 
-        if (guardianController.IsAlly())
+        if (!guardianController.IsAlly())
         {
-            if (other.CompareTag("Enemy"))
+            if (other.CompareTag("Player"))
             {
-                Debug.Log($"�Guardian aliado golpe� a enemigo: {other.name}!");
+                Debug.Log($"¡Lanza del Guardian golpeó a {other.name}!");
+                combatManager.OnGuardianHit(damage);
+                hasHit = true;
                 guardianController.NotifyWeaponHit();
             }
         }
         else
         {
-            if (other.CompareTag("Player") || other.name.Contains("Pompompurin"))
+            if (other.CompareTag("Enemy"))
             {
-                Debug.Log($"�Lanza del Guardian golpe� a {other.name}!");
+                Debug.Log($"¡Guardian aliado golpeó a enemigo: {other.name}!");
                 guardianController.NotifyWeaponHit();
+                hasHit = true;
             }
         }
     }

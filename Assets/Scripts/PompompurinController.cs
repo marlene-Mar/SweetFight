@@ -21,8 +21,8 @@ public class PompompurinController : MonoBehaviour
 
     public Collider[] manoColliders;
 
-    public int damageGolpe1 = 10;
-    public int damageGolpe2 = 20;
+    public int damageGolpe1 = 15;
+    public int damageGolpe2 = 25;
 
     public float combatRange = 2.0f;
     public LayerMask enemyLayer;
@@ -51,6 +51,11 @@ public class PompompurinController : MonoBehaviour
 
             if (col.GetComponent<PompompurinHandCollider>() == null)
                 col.gameObject.AddComponent<PompompurinHandCollider>();
+        }
+
+        if (vidaJugador != null)
+        {
+            vidaJugador.OnPlayerDead += Die;
         }
     }
 
@@ -224,23 +229,9 @@ public class PompompurinController : MonoBehaviour
         return currentDamage;
     }
 
-    //public void TakeDamage(int damage)
-    //{
-    //    life -= damage;
-    //    pompompurinAnimator.SetTrigger("RecibirGolpe");
-
-    //    Debug.Log($"Pompompurin recibió {damage} de daño. Salud: {life}/100");
-
-    //    if (life <= 0)
-    //    {
-    //        life = 0;
-    //        Die();
-    //    }
-    //}
-
     void Die()
     {
-        pompompurinAnimator.SetBool("IsDead", true);
+        pompompurinAnimator.SetBool("Die", true);
         Debug.Log("Pompompurin ha muerto!");
 
         //Notificar al CombatManager

@@ -33,6 +33,7 @@ public class UIManager : MonoBehaviour
     public Image vida1Cheedor;
     public Image vida2Cheedor;
     public Image vida3Cheedor;
+    public Image barraVidaGuardian;
 
     //==============================
     //MAPA

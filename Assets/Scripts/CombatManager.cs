@@ -16,6 +16,8 @@ public class CombatManager : MonoBehaviour
     private float combatTimer = 40f;
     private bool timerRunning = false;
 
+    private VidaJugador vidaJugador;
+
     void Start()
     {
         if (combatUI != null)
@@ -30,6 +32,7 @@ public class CombatManager : MonoBehaviour
         guardianHitsLanded = 0;
         totalDamageDealt = 0;
         totalDamageTaken = 0;
+        vidaJugador = player.GetComponent<VidaJugador>();
 
         Debug.Log("¡Combate iniciado con el Guardian!");
 
@@ -37,7 +40,6 @@ public class CombatManager : MonoBehaviour
             combatUI.SetActive(true);
 
         InitializeCombat();
-
         StartCoroutine(CombatTimer());
     }
 
@@ -76,10 +78,10 @@ public class CombatManager : MonoBehaviour
         totalDamageTaken += damage;
 
         Debug.Log($"¡Guardián conectó golpe #{guardianHitsLanded}! Daño: {damage} | Total recibido: {totalDamageTaken}");
-
-        if (player != null)
+        Debug.Log("Guardian intentó hacer daño: " + damage);
+        if (vidaJugador != null)
         {
-            //player.TakeDamage(damage);
+            vidaJugador.RecibirDaño(damage);
         }
     }
 
@@ -97,25 +99,17 @@ public class CombatManager : MonoBehaviour
         if (combatUI != null)
             combatUI.SetActive(false);
 
-        // Reset jugador
         if (player != null)
             player.ExitCombat();
 
-        // Reset guardián
-        if (currentEnemy != null)
+        if (playerWon)
         {
-            // Reactivar NavMeshAgent
-            var nav = currentEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
-            if (nav != null)
-            {
-                nav.isStopped = false;
-            }
-
-            //// Reset flag de combate en guardián si existe
-            //currentEnemy.GuardianState.Combat = false;
-
-            // Llamar a método de patrullaje
-            currentEnemy.PatrolBehaviour();
+            OnPlayerVictory();
+        }
+        else
+        {
+            if (currentEnemy != null)
+                currentEnemy.EndCombat();
         }
     }
 
@@ -142,8 +136,6 @@ public class CombatManager : MonoBehaviour
         Debug.Log("================================");
     }
 
-
-    // FIX: Resetea jugador + Guardian (agrega ResumePatrol() si existe en GuardianController)
     void OnPlayerDefeat()
     {
         Debug.Log("Has sido derrotado por el Guardian.");
@@ -178,6 +170,6 @@ public class CombatManager : MonoBehaviour
         timerRunning = false;
 
         Debug.Log("Tiempo terminado, finaliza combate");
-        EndCombat(false); // termina el combate automáticamente
+        EndCombat(false); 
     }
 }

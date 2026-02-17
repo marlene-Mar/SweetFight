@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour
     private float smoothSpeed = 3f; 
     public Image healthPompompurinBar;
     public Image healtCheedorBar;
+    public Image healthGuardianBar;
+    public Image candyCoinsBar;
 
     private VidaJugador vidaJugador;
 
@@ -42,13 +44,20 @@ public class GameManager : MonoBehaviour
 
         if (vidaJugador != null)
         {
-            vidaJugador.OnVidaChanged += UpdateHealthBar;
+            vidaJugador.OnVidaChanged += UpdateHealthBarPlayer;
             vidaJugador.OnPlayerDead += Die;
         }
+
+        GuardianController guardian = FindObjectOfType<GuardianController>();
+
+        if (guardian != null)
+        {
+            guardian.OnVidaChanged += UpdateHealthBarGuardian;
+        }
+
     }
 
-
-    void UpdateHealthBar(int vidaActual, int vidaMaxima)
+    void UpdateHealthBarPlayer(int vidaActual, int vidaMaxima)
     {
         if (healthPompompurinBar != null)
         {
@@ -68,6 +77,15 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Over");
         // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         //Time.timeScale = 0f; // Pausa el juego
+    }
+
+    public void UpdateHealthBarGuardian(int vidaActual, int vidaMaxima)
+    {
+        if (healthGuardianBar != null)
+        {
+            healthGuardianBar.fillAmount =
+                (float)vidaActual / vidaMaxima;
+        }
     }
 
     //AUDIO
