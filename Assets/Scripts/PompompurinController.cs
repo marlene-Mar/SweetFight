@@ -213,6 +213,8 @@ public class PompompurinController : MonoBehaviour
 
     void UpdateAnimator()
     {
+        if (pompompurinAnimator.GetBool("Die")) return;
+
         pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
 
         if (isAttacking || isInDialogue)
@@ -231,15 +233,36 @@ public class PompompurinController : MonoBehaviour
 
     void Die()
     {
+        // Detener movimiento inmediatamente
+        moveDirection = Vector3.zero;
+        verticalVelocity = Vector3.zero;
+        isAttacking = false;
+        isInDialogue = false;
+
+        // Desactivar colliders de manos si están activos
+        foreach (var col in manoColliders)
+            col.enabled = false;
+
+        // Forzar parámetros antes de activar muerte
+        pompompurinAnimator.SetFloat("Speed", 0f);
+        pompompurinAnimator.SetBool("InCombat", false);
+        pompompurinAnimator.SetBool("Jump", false);
+
         pompompurinAnimator.SetBool("Die", true);
+
         Debug.Log("Pompompurin ha muerto!");
 
-        //Notificar al CombatManager
         if (combatManager != null)
-        {
             combatManager.EndCombat(false);
-        }
 
+        // Usar coroutine en lugar de disabled inmediato
+        StartCoroutine(DisableAfterDeath());
+    }
+
+    IEnumerator DisableAfterDeath()
+    {
+        // Esperar a que el Animator haga la transición
+        yield return new WaitForSeconds(0.1f);
         enabled = false;
     }
 

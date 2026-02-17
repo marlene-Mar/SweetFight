@@ -9,6 +9,8 @@ public class VidaJugador : MonoBehaviour
     public Action<int, int> OnVidaChanged;
     public Action OnPlayerDead;
 
+    public HitEffectController hitEffect;
+
     void Start()
     {
         vidaActual = vidaMaxima;
@@ -21,6 +23,8 @@ public class VidaJugador : MonoBehaviour
         vidaActual = Mathf.Clamp(vidaActual, 0, vidaMaxima);
 
         Debug.Log("Daño recibido: " + cantidad);
+
+        hitEffect?.TriggerHit();
 
         NotificarCambio();
 
