@@ -1,5 +1,4 @@
-using UnityEngine;
-using Unity.Collections;
+﻿using UnityEngine;
 
 public class FlanCollection : MonoBehaviour
 {
@@ -10,7 +9,16 @@ public class FlanCollection : MonoBehaviour
         if (other.CompareTag("Flan"))
         {
             flanCount++;
+
+            ItemPickup pickup = other.GetComponent<ItemPickup>();
+
+            if (pickup != null)
+            {
+                InventoryManager.instance.AddItem(pickup.itemData, 1);
+            }
+
             Destroy(other.gameObject);
+
             Debug.Log($"Flanes recogidos: {flanCount}");
         }
     }

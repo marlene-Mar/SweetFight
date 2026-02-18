@@ -20,11 +20,9 @@ public class GameManager : MonoBehaviour
     [Tooltip("Texto que muestra el contador de guardianes aliados (TextMeshPro)")]
     public TextMeshProUGUI guardianAllyCounterText;
 
-    [Tooltip("Alternativamente, usa UI.Text si no tienes TextMeshPro")]
-    public Text guardianAllyCounterTextLegacy;
 
     [Tooltip("Prefijo del texto mostrado")]
-    public string counterPrefix = "Guardianes Aliados: ";
+    public string counterPrefix = "x0";
 
     [Tooltip("Muestra logs del contador en consola")]
     public bool debugCounterLogs = true;
@@ -159,8 +157,6 @@ public class GameManager : MonoBehaviour
         if (guardianAllyCounterText != null)
             guardianAllyCounterText.text = displayText;
 
-        if (guardianAllyCounterTextLegacy != null)
-            guardianAllyCounterTextLegacy.text = displayText;
     }
 
     /// <summary>Obtiene el número actual de guardianes aliados.</summary>

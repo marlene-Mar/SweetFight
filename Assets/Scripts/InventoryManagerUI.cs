@@ -1,40 +1,25 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using System.Collections.Generic;
 
 public class InventoryManagerUI : MonoBehaviour
 {
     public GameObject itemSlotPrefab;
     public Transform inventoryContainer;
 
-
-    public void RefreshInventoryUI()
+    public void RefreshInventoryUI(List<Item> inventory)
     {
-
         foreach (Transform t in inventoryContainer)
         {
-
             Destroy(t.gameObject);
-
         }
 
-       
-        foreach (Item item in InventoryManager.instance.inventory)
+        foreach (Item item in inventory)
         {
-            
-                       GameObject newItemSlot = Instantiate(itemSlotPrefab, inventoryContainer);
-            
-                       ItemSlotUI itemSlotUI = newItemSlot.GetComponent<ItemSlotUI>();
+            GameObject newSlot = Instantiate(itemSlotPrefab, inventoryContainer);
+            ItemSlotUI slotUI = newSlot.GetComponent<ItemSlotUI>();
 
-            itemSlotUI.itemIconImage.sprite = item.itemData.itemIcon;
-            //itemSlotUI.itemNameText.text = item.itemData.itemName;
-            itemSlotUI.itemQuantityText.text = "x" + item.itemQuantity.ToString();
-
-
+            slotUI.itemIconImage.sprite = item.itemData.itemIcon;
+            slotUI.itemQuantityText.text = "x" + item.itemQuantity.ToString();
         }
-
-
-
     }
-
-    }
+}
