@@ -11,6 +11,7 @@ TagManager:
   - Enemy
   - Guardian
   - Water
+  - Camemi
   layers:
   - Default
   - TransparentFX
@@ -23,7 +24,7 @@ TagManager:
   - Lava
   - Guardian
   - PlayerWeapon
-  - 
+  - Camemi
   - 
   - 
   - 

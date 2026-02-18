@@ -24,11 +24,10 @@ public class HitEffectController : MonoBehaviour
         _mat.SetFloat("_HitAmount", 0f);
     }
 
-    /// <summary>
-    /// Llama esto cuando el jugador recibe daño.
-    /// </summary>
     public void TriggerHit(Color color, float dur = -1f, float sp = -1f)
     {
+        Debug.Log("TriggerHit llamado, color: " + color);
+
         if (dur < 0) dur = duration;
         if (sp < 0) sp = spread;
 

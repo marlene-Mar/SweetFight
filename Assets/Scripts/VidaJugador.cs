@@ -9,7 +9,7 @@ public class VidaJugador : MonoBehaviour
     public Action<int, int> OnVidaChanged;
     public Action OnPlayerDead;
 
-    public HitEffectController hitEffect;
+    //public HitEffectController hitEffect;
 
     void Start()
     {
@@ -24,7 +24,7 @@ public class VidaJugador : MonoBehaviour
 
         Debug.Log("Daño recibido: " + cantidad);
 
-        hitEffect?.TriggerHit();
+        //hitEffect?.TriggerHit();
 
         NotificarCambio();
 
