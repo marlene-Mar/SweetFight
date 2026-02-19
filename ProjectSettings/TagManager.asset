@@ -12,6 +12,7 @@ TagManager:
   - Guardian
   - Water
   - Camemi
+  - GuardianAlly
   layers:
   - Default
   - TransparentFX
