@@ -27,6 +27,7 @@ public class UIManager : MonoBehaviour
     // ==============================
     public GameObject HudPanel;
     public GameObject PausaPanel;
+    private bool isGamePaused = false;
     public Image barraVidaP;
     public Image barraCandyCoins;
     public Image barraVidaC;
@@ -46,8 +47,8 @@ public class UIManager : MonoBehaviour
     // ==============================
     public TextMeshProUGUI musicLevelText;
     public TextMeshProUGUI sfxLevelText;
-    private int musicLevel = 5;
-    private int sfxLevel = 5;
+    private int musicLevel = 3;
+    private int sfxLevel = 3;
 
     // ==============================
     // TIMER
@@ -104,6 +105,25 @@ public class UIManager : MonoBehaviour
             Keyboard.current.enterKey.wasPressedThisFrame)
         {
             GoToMenuPrincipal();
+        }
+
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            // Solo permitimos pausar si el HUD está activo (estamos en el juego)
+            // o si el panel de pausa ya está abierto para cerrar
+            if (HudPanel.activeSelf || PausaPanel.activeSelf)
+            {
+                if (isGamePaused)
+                {
+                    ReanudarJuego();
+                    isGamePaused = false;
+                }
+                else
+                {
+                    PausarJuego();
+                    isGamePaused = true;
+                }
+            }
         }
     }
 
@@ -230,6 +250,7 @@ public class UIManager : MonoBehaviour
         PausaPanel.SetActive(true);
         gameManager.PlayMusicByState(GameManager.GameState.Pausa);
         Time.timeScale = 0f;      
+        isGamePaused = true;
     }
 
     public void ReanudarJuego()
@@ -238,6 +259,7 @@ public class UIManager : MonoBehaviour
         HudPanel.SetActive(true);
         gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
         Time.timeScale = 1f;
+        isGamePaused = false;
     }
 
     public void GuardarYSalir()
