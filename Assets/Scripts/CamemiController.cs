@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
-using System.Collections;
 
 public class CamemiController : MonoBehaviour
 {
@@ -20,6 +19,12 @@ public class CamemiController : MonoBehaviour
     public DialogueManager dialogueManager;
     public Dialogos dialogoEncuentro;
 
+    [Header("Combate")]
+    public CombatManager combatManager;
+    public Collider[] manoCollider;
+
+    private PompompurinController playerController;
+
     [Header("Patrulla")]
     public float patrolRadius = 10f;
     public float waitTimeBetweenPoints = 2f;
@@ -35,6 +40,7 @@ public class CamemiController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        playerController = FindObjectOfType<PompompurinController>();
 
         currentState = CamemiState.Patrolling;
 
@@ -114,8 +120,8 @@ public class CamemiController : MonoBehaviour
 
         if (distance <= detectionRange)
         {
-            canInteract = false; // BLOQUEA INMEDIATAMENTE
-            //StartCoroutine(DialogueSequence());
+            canInteract = false;
+            StartDialogue();
         }
     }
 
@@ -123,50 +129,33 @@ public class CamemiController : MonoBehaviour
     // DIÁLOGO
     // ========================
 
-    //IEnumerator DialogueSequence()
-    //{
-    //    Debug.Log("Iniciando diálogo Camemi");
-
-    //    currentState = CamemiState.Greeting;
-
-    //    agent.isStopped = true;
-    //    agent.ResetPath();
-    //    animator.SetBool("Walk", false);
-
-    //    if (dialogueManager == null)
-    //    {
-    //        Debug.LogError("DialogueManager NO asignado");
-    //        yield break;
-    //    }
-
-    //    if (dialogoEncuentro == null)
-    //    {
-    //        Debug.LogError("DialogoEncuentro NO asignado");
-    //        yield break;
-    //    }
-
-    //    dialogueManager.GetConversation(dialogoEncuentro);
-
-    //    currentState = CamemiState.Talking;
-
-    //    yield return new WaitUntil(() => !dialogueManager.IsDialogue2Active());
-
-    //    StartCombat();
-    //}
-
-    void LookAtPlayer()
+    void StartDialogue()
     {
-        Vector3 direction = (player.position - transform.position).normalized;
-        direction.y = 0;
+        animator.SetBool("InDialogue", true);
+        currentState = CamemiState.Talking;
 
-        if (direction != Vector3.zero)
+        if (dialogoEncuentro != null && dialogueManager != null)
         {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+            dialogueManager.StartCamemiDialogue(dialogoEncuentro, this);
         }
     }
 
-    public void EndDialogue() { }
+    public void EndDialogue()
+    {
+        currentState = CamemiState.Combat;
+
+        animator.SetBool("InDialogue", false);
+
+        playerController?.ExitDialogue();
+        playerController?.StartCombatAfterDialogue();
+
+        combatManager?.StartCamemiCombat(this, playerController);
+
+        //if (manoCollider != null)
+        //    manoCollider.SetActive(true);
+
+        StartCombat();
+    }
 
     // ========================
     // COMBATE
@@ -184,6 +173,7 @@ public class CamemiController : MonoBehaviour
 
         if (distance > 2f)
         {
+            agent.isStopped = false;
             agent.SetDestination(player.position);
             animator.SetBool("Walk", true);
         }
@@ -191,7 +181,23 @@ public class CamemiController : MonoBehaviour
         {
             agent.isStopped = true;
             animator.SetBool("Walk", false);
-            // animator.SetTrigger("Attack"); si quieres
+            // animator.SetTrigger("Attack");
+        }
+    }
+
+    // ========================
+    // MIRAR AL JUGADOR
+    // ========================
+
+    void LookAtPlayer()
+    {
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
         }
     }
 

@@ -18876,8 +18876,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CamemiController
   player: {fileID: 439080074}
-  dialogueManager: {fileID: 1401320891}
+  dialogueManager: {fileID: 765349473}
   dialogoEncuentro: {fileID: 11400000, guid: 876f1f658b5d94d469afe182c553ad84, type: 2}
+  combatManager: {fileID: 1401320890}
+  manoCollider:
+  - {fileID: 540367369}
+  - {fileID: 2137384602}
   patrolRadius: 2
   waitTimeBetweenPoints: 2
   detectionRange: 5
@@ -18893,8 +18897,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e80cb4ce251ef944bfb832f338dbf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCDialogue
-  dialogueManager: {fileID: 0}
-  dialogo: {fileID: 0}
+  dialogueManager: {fileID: 765349473}
+  dialogo: {fileID: 11400000, guid: 876f1f658b5d94d469afe182c553ad84, type: 2}
 --- !u!1 &1153943589
 GameObject:
   m_ObjectHideFlags: 0
@@ -22118,7 +22122,6 @@ GameObject:
   - component: {fileID: 1401320889}
   - component: {fileID: 1401320888}
   - component: {fileID: 1401320890}
-  - component: {fileID: 1401320891}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -22282,23 +22285,6 @@ MonoBehaviour:
   combatUI: {fileID: 1394591935}
   uiManager: {fileID: 1254177507}
   combatDuration: 40
---- !u!114 &1401320891
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1401320886}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b57ba6fd85a0c54a84b42f2e9d58c57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
-  dialoguePanel: {fileID: 1562499630}
-  speakerText: {fileID: 1484440586}
-  dialogueText: {fileID: 2068943708}
-  freeLookCamera: {fileID: 69318009}
-  dialogueCamera: {fileID: 558968158}
 --- !u!1001 &1412335921
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33703,6 +33689,7 @@ SceneRoots:
   - {fileID: 1603064619}
   - {fileID: 1254177508}
   - {fileID: 1401320887}
+  - {fileID: 765349474}
   - {fileID: 1050121789}
   - {fileID: 1510030662}
   - {fileID: 188045898}
@@ -33711,4 +33698,3 @@ SceneRoots:
   - {fileID: 1749802353}
   - {fileID: 165476753}
   - {fileID: 1145964193}
-  - {fileID: 765349474}

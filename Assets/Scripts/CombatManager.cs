@@ -47,7 +47,7 @@ public class CombatManager : MonoBehaviour
     // ─────────────────────────────────────────────
     //  Inicio de combate
     // ─────────────────────────────────────────────
-    public void StartCombat(GuardianController guardian, PompompurinController pompompurin)
+    public void StartGuardianCombat(GuardianController guardian, PompompurinController pompompurin)
     {
         // Evitar iniciar un segundo combate si ya hay uno activo
         if (timerRunning)
@@ -72,6 +72,26 @@ public class CombatManager : MonoBehaviour
 
         Debug.Log("¡Combate iniciado!");
         StartCoroutine(CombatTimerRoutine());
+    }
+
+    public void StartCamemiCombat(CamemiController camemi, PompompurinController player)
+    {
+        Debug.Log("Inicia combate Camemi");
+
+        // Evitar iniciar un segundo combate si ya hay uno activo
+        if (timerRunning)
+        {
+            Debug.LogWarning("CombatManager: Ya hay un combate activo, se ignora el nuevo.");
+            return;
+        }
+
+        //currentEnemy = camemi;
+        //player = pompompurin;
+        //vidaJugador = player.GetComponent<VidaJugador>();
+
+        // Lógica específica de Camemi
+        //camemi.EnableWeapon();
+        // lógica diferente si quieres
     }
 
     // ─────────────────────────────────────────────

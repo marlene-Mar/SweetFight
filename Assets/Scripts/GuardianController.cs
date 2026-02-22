@@ -252,7 +252,7 @@ public class GuardianController : MonoBehaviour
         playerController?.ExitDialogue();
         playerController?.StartCombatAfterDialogue();
 
-        combatManager?.StartCombat(this, playerController ?? FindObjectOfType<PompompurinController>());
+        combatManager?.StartGuardianCombat(this, playerController ?? FindObjectOfType<PompompurinController>());
 
         if (weaponObject != null) weaponObject.SetActive(true);
         StartCombat();
@@ -347,8 +347,6 @@ public class GuardianController : MonoBehaviour
         DisableWeaponCollider();
         if (weaponObject != null) weaponObject.SetActive(false);
 
-        // [FIX 8] Avisar al CombatManager de la victoria AHORA,
-        // pero retrasar BecomeAlly hasta que la animación de muerte termine.
         combatManager?.EndCombat(true);
 
         // Esperar la duración de la animación de muerte antes de convertirse en aliado.
@@ -356,9 +354,6 @@ public class GuardianController : MonoBehaviour
         StartCoroutine(BecomeAllyAfterDeathAnimation(2.5f));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  FIX [8]: espera la animación de muerte y luego se levanta
-    // ─────────────────────────────────────────────────────────────
     IEnumerator BecomeAllyAfterDeathAnimation(float deathAnimDuration)
     {
         yield return new WaitForSeconds(deathAnimDuration);
