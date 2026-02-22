@@ -10,8 +10,12 @@ public class GameManager : MonoBehaviour
     public Image healthPompompurinBar;
     public Image healtCheedorBar;
     public Image healthGuardianBar;
+    public Image healthCamemiBar;
     public Image candyCoinsBar;
     private VidaJugador vidaJugador;
+    public TextMeshProUGUI maxMessageText;
+    public int maxCandies = 30;
+    private int currentCandies = 0;
 
     // ══════════════════════════════════════════════════════════
     //  CONTADOR DE GUARDIANES ALIADOS
@@ -19,7 +23,6 @@ public class GameManager : MonoBehaviour
     [Header("Guardian Ally Counter")]
     [Tooltip("Texto que muestra el contador de guardianes aliados (TextMeshPro)")]
     public TextMeshProUGUI guardianAllyCounterText;
-
 
     [Tooltip("Prefijo del texto mostrado")]
     public string counterPrefix = "x0";
@@ -90,7 +93,9 @@ public class GameManager : MonoBehaviour
         {
             guardian.OnVidaChanged += UpdateHealthBarGuardian;
         }
-
+        UpdateCandyBar();
+        // Asegura que el mensaje de candy coins máxima esté oculto al inicio
+        maxMessageText.gameObject.SetActive(false);
         // Inicializar contador de guardianes
         UpdateGuardianAllyCounterUI();
     }
@@ -125,6 +130,28 @@ public class GameManager : MonoBehaviour
         {
             healthGuardianBar.fillAmount = (float)vidaActual / vidaMaxima;
         }
+    }
+
+    //Candy Coins Bar
+    public void AddCandy(int amount)
+    {
+        if (currentCandies >= maxCandies)
+            return;
+
+        currentCandies += amount;
+        UpdateCandyBar();
+
+        if (currentCandies >= maxCandies)
+        {
+            currentCandies = maxCandies;
+            maxMessageText.gameObject.SetActive(true);
+            maxMessageText.text = "¡CandyCoins al máximo!";
+        }
+    }
+
+    void UpdateCandyBar()
+    {
+        candyCoinsBar.fillAmount = (float)currentCandies / (float)maxCandies;
     }
 
     // ══════════════════════════════════════════════════════════

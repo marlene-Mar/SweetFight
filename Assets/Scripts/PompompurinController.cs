@@ -24,7 +24,7 @@ public class PompompurinController : MonoBehaviour
     public int damageGolpe1 = 25;
     public int damageGolpe2 = 30;
 
-    public float combatRange = 2.0f;
+    public float combatRange = 4.0f;
     public LayerMask enemyLayer;
 
     public bool inCombat = false;
@@ -45,10 +45,11 @@ public class PompompurinController : MonoBehaviour
         combatManager = FindObjectOfType<CombatManager>();
         vidaJugador = GetComponent<VidaJugador>();
 
+        // Asegurarse de que los colliders de las manos estén desactivados al inicio
         foreach (var col in manoColliders)
         {
+            // Desactivar colliders al inicio para evitar detecciones no deseadas
             col.enabled = false;
-
             if (col.GetComponent<PompompurinHandCollider>() == null)
                 col.gameObject.AddComponent<PompompurinHandCollider>();
         }
@@ -277,58 +278,6 @@ public class PompompurinController : MonoBehaviour
     }
 }
 
-//public class PompompurinHandCollider : MonoBehaviour
-//{
-//    private PompompurinController playerController;
-//    private bool hasHit = false; // Evitar múltiples hits
-
-//    void Start()
-//    {
-//        playerController = GetComponentInParent<PompompurinController>();
-
-//        if (playerController == null)
-//        {
-//            Debug.LogError($"PompompurinHandCollider en {gameObject.name} no encontró PompompurinController en el padre!");
-//        }
-//    }
-
-//    void OnEnable()
-//    {
-//        hasHit = false; // Resetear cuando se activa el collider
-//    }
-
-//    void OnTriggerEnter(Collider other)
-//    {
-//        if (hasHit) return; // Evitar golpes múltiples en el mismo ataque
-
-//        //Verificar si golpeó al Guardian
-//        if (other.CompareTag("Enemy") || other.name.Contains("Guardian"))
-//        {
-//            if (playerController != null && playerController.isAttacking)
-//            {
-//                GuardianController guardian = other.GetComponent<GuardianController>();
-
-//                if (guardian == null)
-//                    guardian = other.GetComponentInParent<GuardianController>();
-
-//                //Verificar que el guardian puede recibir daño
-//                if (guardian != null && guardian.CanReceiveDamage())
-//                {
-//                    int damage = playerController.GetCurrentDamage();
-
-//                    Debug.Log($"¡Mano de Pompompurin golpeó al Guardian! Daño: {damage}");
-
-//                    hasHit = true;
-//                    playerController.NotifyHitLanded();
-//                }
-//                else if (guardian != null)
-//                {
-//                    Debug.Log("Guardian no puede recibir daño en este momento");
-//                }
-//            }
-//        }
-//    }
-//}
 public class PompompurinHandCollider : MonoBehaviour
 {
     private PompompurinController playerController;
@@ -345,21 +294,68 @@ public class PompompurinHandCollider : MonoBehaviour
     void OnEnable() => hasHit = false;
     void OnDisable() => hasHit = false; // ← faltaba esto
 
+    //void OnTriggerEnter(Collider other)
+    //{
+    //    Debug.Log($"Mano tocó: {other.name} | Tag: {other.tag}"); // ← diagnóstico temporal
+
+    //    if (hasHit) return;
+    //    if (playerController == null || !playerController.isAttacking) return;
+
+    //    // Buscar GuardianController en el objeto o cualquier padre, sin depender de tags ni nombres
+    //    GuardianController guardian = other.GetComponentInParent<GuardianController>();
+
+    //    if (guardian != null && guardian.CanReceiveDamage())
+    //    {
+    //        Debug.Log($"¡Golpe registrado en: {other.name} | Daño: {playerController.GetCurrentDamage()}");
+    //        hasHit = true;
+    //        playerController.NotifyHitLanded();
+    //    }
+    //}
+
+    // ─────────────────────────────────────────────────────────────────
+    //  PARCHE — reemplaza SOLO el método OnTriggerEnter dentro de
+    //  la clase PompompurinHandCollider en PompompurinController.cs
+    // ─────────────────────────────────────────────────────────────────
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"Mano tocó: {other.name} | Tag: {other.tag}"); // ← diagnóstico temporal
-
         if (hasHit) return;
         if (playerController == null || !playerController.isAttacking) return;
 
-        // Buscar GuardianController en el objeto o cualquier padre, sin depender de tags ni nombres
-        GuardianController guardian = other.GetComponentInParent<GuardianController>();
+        Debug.Log($"Mano tocó: {other.name} | Tag: {other.tag}");
 
+        // ── MouseEnemy ────────────────────────────────────────────────
+        MouseEnemy mouse = other.GetComponent<MouseEnemy>()
+                        ?? other.GetComponentInParent<MouseEnemy>();
+        if (mouse != null && mouse.CanReceiveDamage())
+        {
+            hasHit = true;
+            Vector3 hitDir = (mouse.transform.position - transform.position).normalized;
+            hitDir.y = 0.2f;
+            mouse.TakeDamage(playerController.GetCurrentDamage(), hitDir);
+            playerController.NotifyHitLanded();
+            return;
+        }
+
+        //// ── CamemiController   ─────────────────────────────────
+        //CamemiController camemi = other.GetComponent<CamemiController>()
+        //                       ?? other.GetComponentInParent<CamemiController>();
+        //if (camemi != null && camemi.CanReceiveDamage())
+        //{
+        //    hasHit = true;
+        //    camemi.RecibirDaño(playerController.GetCurrentDamage());
+        //    playerController.NotifyHitLanded();
+        //    Debug.Log($"[Mano] Golpe en Camemi — daño: {playerController.GetCurrentDamage()}");
+        //    return;
+        //}
+
+        // ── GuardianController ────────────────────────────────────────
+        GuardianController guardian = other.GetComponent<GuardianController>()
+                                   ?? other.GetComponentInParent<GuardianController>();
         if (guardian != null && guardian.CanReceiveDamage())
         {
-            Debug.Log($"¡Golpe registrado en: {other.name} | Daño: {playerController.GetCurrentDamage()}");
             hasHit = true;
             playerController.NotifyHitLanded();
+            Debug.Log("[Mano] Golpe en Guardian.");
         }
     }
 }

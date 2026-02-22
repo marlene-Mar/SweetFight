@@ -34,6 +34,7 @@ public class UIManager : MonoBehaviour
     public Image vida2Cheedor;
     public Image vida3Cheedor;
     public Image barraVidaGuardian;
+    public Image barraVidaCamemi;
 
     //==============================
     //MAPA
@@ -284,7 +285,7 @@ public class UIManager : MonoBehaviour
         return Mathf.Log10(value) * 20;
     }
 
-    // ========== TIMER ============
+    // ========== TIMER PELEA GUARDIAN============
 
     public void UpdateTimer(float time)
     {

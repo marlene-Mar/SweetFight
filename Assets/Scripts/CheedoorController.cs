@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.AI;
 using System;
 using System.Collections;
@@ -17,15 +17,15 @@ public class CheedoorController : MonoBehaviour
     public bool isAttacking;
     public Action OnDeath;
 
-    [Header("Configuración de Knockback")]
+    [Header("ConfiguraciÃ³n de Knockback")]
     public float knockbackForce = 5f;
     public float knockbackDuration = 0.3f;
     private bool isKnockedBack = false;
 
-    [Header("Configuración de Movimiento")]
+    [Header("ConfiguraciÃ³n de Movimiento")]
     public float stoppingDistance = 1.5f;
 
-    [Header("Configuración de Daño al Jugador")]
+    [Header("ConfiguraciÃ³n de DaÃ±o al Jugador")]
     public float damageCooldown = 1f;
     private float lastDamageTime;
 
@@ -46,7 +46,7 @@ public class CheedoorController : MonoBehaviour
         // Perseguir al jugador
         agent.SetDestination(player.transform.position);
 
-        // Actualizar animación de velocidad
+        // Actualizar animaciÃ³n de velocidad
         float speed = agent.velocity.magnitude;
         agentAnimator.SetFloat("Speed", speed);
     }
@@ -61,7 +61,7 @@ public class CheedoorController : MonoBehaviour
         //    {
         //        int dmg = playerController.GetCurrentDamage();
 
-        //        // Calcular dirección del empuje (desde las manos hacia el enemigo)
+        //        // Calcular direcciÃ³n del empuje (desde las manos hacia el enemigo)
         //        Vector3 knockbackDirection = (transform.position - other.transform.position).normalized;
 
         //        TakeDamage(dmg, knockbackDirection);
@@ -71,14 +71,14 @@ public class CheedoorController : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        // Hacer daño al jugador cuando lo toca
+        // Hacer daÃ±o al jugador cuando lo toca
         if (other.CompareTag("Player") && Time.time - lastDamageTime >= damageCooldown)
         {
             PompompurinController playerController = other.GetComponent<PompompurinController>();
             if (playerController != null)
             {
                 // playerController.TakeDamage(damage);
-                Debug.Log($"Cheedoor toca al jugador y causa {damage} de daño");
+                Debug.Log($"Cheedoor toca al jugador y causa {damage} de daÃ±o");
                 lastDamageTime = Time.time;
             }
         }
@@ -87,7 +87,7 @@ public class CheedoorController : MonoBehaviour
     public void TakeDamage(int damage, Vector3 knockbackDirection)
     {
         currentHealth -= damage;
-        Debug.Log($"Cheedoor recibió {damage} de daño. Salud: {currentHealth}/{maxHealth}");
+        Debug.Log($"Cheedoor recibiÃ³ {damage} de daÃ±o. Salud: {currentHealth}/{maxHealth}");
 
         if (currentHealth <= 0)
         {
@@ -105,30 +105,19 @@ public class CheedoorController : MonoBehaviour
         isKnockedBack = true;
         agent.isStopped = true;
 
-        // Calcular posición de destino del empuje
         Vector3 knockbackTarget = transform.position + (direction * knockbackForce);
 
-        // Verificar que la posición sea válida en el NavMesh
         NavMeshHit hit;
         if (NavMesh.SamplePosition(knockbackTarget, out hit, knockbackForce, NavMesh.AllAreas))
         {
             knockbackTarget = hit.position;
         }
 
-        float elapsedTime = 0f;
-        Vector3 startPosition = transform.position;
+        yield return new WaitForSeconds(knockbackDuration);
 
-        // Mover hacia atrás suavemente
-        while (elapsedTime < knockbackDuration)
-        {
-            transform.position = Vector3.Lerp(startPosition, knockbackTarget, elapsedTime / knockbackDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
+        // ðŸ”¥ Esto mantiene sincronizado el NavMeshAgent
+        agent.Warp(knockbackTarget);
 
-        transform.position = knockbackTarget;
-
-        // Reactivar el NavMeshAgent
         agent.isStopped = false;
         isKnockedBack = false;
     }

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8b92160e0221f64ea0f6d17b3836199, type: 3}
+  m_Name: DialogoFinal
+  m_EditorClassIdentifier: Assembly-CSharp::Dialogos
+  conversationLines:
+  - speakerName: Camemi
+    dialogueLine: "\xA1Oh, pero mira quien ha llegado!"
+  - speakerName: Pompompurin
+    dialogueLine: Camemi, te he estado buscando...
+  - speakerName: Camemi
+    dialogueLine: "Aqu\xED estoy, aburrido. Los habitantes de este mundo no quieren
+      jugar."
+  - speakerName: Pompompurin
+    dialogueLine: "Los espantas, \xBFpor qu\xE9 los atacas? "
+  - speakerName: Camemi
+    dialogueLine: Solo estoy jugando...
+  - speakerName: Pompompurin
+    dialogueLine: Eso no es jugar, luego porque no te quieren.
+  - speakerName: Camemi
+    dialogueLine: "Shhh... Los dejar\xE9 en paz si juegas conmigo"
+  - speakerName: Pompompurin
+    dialogueLine: Bien, vamos a jugar.
+  - speakerName: Camemi
+    dialogueLine: Muajaja..., digo, es un trato.

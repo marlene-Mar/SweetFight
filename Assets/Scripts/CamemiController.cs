@@ -1,60 +1,81 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class CamemiController : MonoBehaviour
 {
-    [Header("Configuración")]
-    public Transform jugador;
-    public float patrolRadius = 2.0f;
-    public float waitTimeBetweenPoints = 2.0f;
-    public float radioDeteccion = 3.0f;
-    public float vidaActual = 100f;
+    public enum CamemiState
+    {
+        Patrolling,
+        Greeting,
+        Talking,
+        Combat
+    }
 
+    [Header("Referencias")]
     private NavMeshAgent agent;
-    private Animator anim;
+    private Animator animator;
+
+    public Transform player;
+    public DialogueManager dialogueManager;
+    public Dialogos dialogoEncuentro;
+
+    [Header("Patrulla")]
+    public float patrolRadius = 10f;
+    public float waitTimeBetweenPoints = 2f;
+
+    [Header("DetecciÃ³n")]
+    public float detectionRange = 5f;
+
     private float waitTimer;
-    private bool enCombate = false;
-    private bool secuenciaIniciada = false;
-    private int contadorGolpesInterno = 0;
-    private bool esBloqueando = false;
+    private CamemiState currentState;
+    private bool canInteract = true;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        anim = GetComponent<Animator>();
-        // Estado inicial: IDLE -> CAMINAR (vía Patrol)
+        animator = GetComponent<Animator>();
+
+        currentState = CamemiState.Patrolling;
+
+        agent.isStopped = false;
+        agent.ResetPath();
+
+        MoveToRandomPoint();
     }
 
     void Update()
     {
-        if (vidaActual <= 0) return;
+        if (player == null) return;
 
-        float distancia = Vector3.Distance(transform.position, jugador.position);
-
-        if (!enCombate && !secuenciaIniciada)
+        switch (currentState)
         {
-            PatrolBehaviour();
+            case CamemiState.Patrolling:
+                PatrolBehaviour();
+                DetectPlayer();
+                break;
 
-            // 3. CAMINAR -> STOP WALKING (Condición: PLAYER = true)
-            if (distancia <= radioDeteccion)
-            {
-                StartCoroutine(SecuenciaNarrativa());
-            }
-        }
-        else if (enCombate)
-        {
-            PerseguirYAtacar();
+            case CamemiState.Greeting:
+            case CamemiState.Talking:
+                LookAtPlayer();
+                break;
+
+            case CamemiState.Combat:
+                LookAtPlayer();
+                CombatBehaviour();
+                break;
         }
     }
 
-    // --- MOVIMIENTO Y PATRULLA ---
-    public void PatrolBehaviour()
+    // ========================
+    // PATRULLA
+    // ========================
+
+    void PatrolBehaviour()
     {
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
-            anim.SetBool("Walk", false); // IDLE
+            animator.SetBool("Walk", false);
             waitTimer += Time.deltaTime;
 
             if (waitTimer >= waitTimeBetweenPoints)
@@ -65,110 +86,127 @@ public class CamemiController : MonoBehaviour
         }
         else
         {
-            anim.SetBool("Walk", true); // CAMINAR
+            animator.SetBool("Walk", true);
         }
     }
 
-    public void MoveToRandomPoint()
+    void MoveToRandomPoint()
     {
         Vector3 randomDirection = Random.insideUnitSphere * patrolRadius + transform.position;
+
         NavMeshHit hit;
+
         if (NavMesh.SamplePosition(randomDirection, out hit, patrolRadius, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
         }
     }
 
-    // --- FLUJO DE DIÁLOGO Y COMBATE ---
-    IEnumerator SecuenciaNarrativa()
+    // ========================
+    // DETECCIÃ“N
+    // ========================
+
+    void DetectPlayer()
     {
-        secuenciaIniciada = true;
-        agent.isStopped = true;
+        if (!canInteract) return;
 
-        // CAMINAR -> STOP WALKING
-        anim.SetBool("PLAYER", true);
-        yield return new WaitForSeconds(1f);
+        float distance = Vector3.Distance(transform.position, player.position);
 
-        // STOP WALKING -> IDLE
-        anim.SetBool("INDIALOGUE", true);
-        Debug.Log("Villano: ¡Hablando...!");
-        yield return new WaitForSeconds(3f);
+        if (distance <= detectionRange)
+        {
+            canInteract = false; // BLOQUEA INMEDIATAMENTE
+            //StartCoroutine(DialogueSequence());
+        }
+    }
 
-        // IDLE -> POSICIÓN PELEA
-        anim.SetBool("Combat", true);
-        enCombate = true;
+    // ========================
+    // DIÃLOGO
+    // ========================
+
+    //IEnumerator DialogueSequence()
+    //{
+    //    Debug.Log("Iniciando diÃ¡logo Camemi");
+
+    //    currentState = CamemiState.Greeting;
+
+    //    agent.isStopped = true;
+    //    agent.ResetPath();
+    //    animator.SetBool("Walk", false);
+
+    //    if (dialogueManager == null)
+    //    {
+    //        Debug.LogError("DialogueManager NO asignado");
+    //        yield break;
+    //    }
+
+    //    if (dialogoEncuentro == null)
+    //    {
+    //        Debug.LogError("DialogoEncuentro NO asignado");
+    //        yield break;
+    //    }
+
+    //    dialogueManager.GetConversation(dialogoEncuentro);
+
+    //    currentState = CamemiState.Talking;
+
+    //    yield return new WaitUntil(() => !dialogueManager.IsDialogue2Active());
+
+    //    StartCombat();
+    //}
+
+    void LookAtPlayer()
+    {
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+        }
+    }
+
+    public void EndDialogue() { }
+
+    // ========================
+    // COMBATE
+    // ========================
+
+    void StartCombat()
+    {
+        currentState = CamemiState.Combat;
         agent.isStopped = false;
-
-        // Iniciar rutinas de combate
-        StartCoroutine(RutinaBloqueo());
     }
 
-    void PerseguirYAtacar()
+    void CombatBehaviour()
     {
-        agent.SetDestination(jugador.position);
-        transform.LookAt(new Vector3(jugador.position.x, transform.position.y, jugador.position.z));
+        float distance = Vector3.Distance(transform.position, player.position);
 
-        // Lógica de ataque por tiempo (ejemplo cada 2 segundos intenta atacar)
-        waitTimer += Time.deltaTime;
-        if (waitTimer >= 2f && Vector3.Distance(transform.position, jugador.position) < 2f)
+        if (distance > 2f)
         {
-            EjecutarAtaque();
-            waitTimer = 0f;
+            agent.SetDestination(player.position);
+            animator.SetBool("Walk", true);
+        }
+        else
+        {
+            agent.isStopped = true;
+            animator.SetBool("Walk", false);
+            // animator.SetTrigger("Attack"); si quieres
         }
     }
 
-    void EjecutarAtaque()
+    // ========================
+    // VOLVER A PATRULLAR
+    // ========================
+
+    public void ReturnToPatrol()
     {
-        contadorGolpesInterno++;
-        anim.SetInteger("ContAttack1", contadorGolpesInterno);
+        currentState = CamemiState.Patrolling;
 
-        // POSICIÓN PELEA -> GOLPE1
-        anim.SetTrigger("Attack1");
+        agent.isStopped = false;
+        agent.ResetPath();
 
-        // Si ya dio 2 golpes, el Animator pasará a GOLPE2 por la condición ContAttack1 > 2
-        if (contadorGolpesInterno >= 3)
-        {
-            contadorGolpesInterno = 0;
-            anim.SetInteger("ContAttack1", 0);
-        }
-    }
-
-    IEnumerator RutinaBloqueo()
-    {
-        while (vidaActual > 0)
-        {
-            yield return new WaitForSeconds(10f);
-            esBloqueando = true;
-            anim.SetTrigger("Block"); // ANYSTATE -> BLOQUEARGOLPE
-            yield return new WaitForSeconds(1.5f); // Tiempo que dura el bloqueo
-            esBloqueando = false;
-        }
-    }
-
-    // --- RECIBIR DAÑO Y MUERTE ---
-    public void RecibirDaño(float daño)
-    {
-        if (esBloqueando || vidaActual <= 0) return;
-
-        vidaActual -= daño;
-        anim.SetTrigger("RecibirGolpe"); // GOLPE1/2 -> RECIBIRGOLPE
-        Debug.Log("Vida Villano: " + vidaActual);
-
-        if (vidaActual <= 0) Morir();
-    }
-
-    void Morir()
-    {
-        StopAllCoroutines();
-        enCombate = false;
-        agent.isStopped = true;
-        anim.SetBool("Die", true); // ANYSTATE -> MORIR
-        Debug.Log("Villano derrotado. Fin del juego.");
-        Invoke("RegresarAlMenu", 5f);
-    }
-
-    void RegresarAlMenu()
-    {
-        SceneManager.LoadScene("MenuInicio");
+        MoveToRandomPoint();
+        canInteract = true;
     }
 }

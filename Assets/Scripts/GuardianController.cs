@@ -2,67 +2,59 @@
 using UnityEngine.AI;
 using System.Collections;
 
-// ═══════════════════════════════════════════════════════════════════
-//  GuardianController  —  versión corregida y optimizada
-//
-//  FIXES aplicados:
-//  [8]  La animación de muerte se completa ANTES de llamar BecomeAlly()
-//  [9]  En modo aliado se ignora a otros guardianes por tag "Guardian"
-//  [10] DetectPlayer() respeta el flag global IsInCombat del CombatManager
-//  [+]  Eliminada la doble llamada a ExitCombat() del jugador
-//  [+]  AttackCooldown ya no duplica el reseteo del timer
-// ═══════════════════════════════════════════════════════════════════
+[RequireComponent(typeof(NavMeshAgent))] // asegura que el GameObject tenga un NavMeshAgent para controlar el movimiento
+[RequireComponent(typeof(Animator))] // asegura que el GameObject tenga un Animator para controlar las animaciones
 
-[RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(Animator))]
 public class GuardianController : MonoBehaviour
 {
     // ── Referencias ──────────────────────────────────────────────
-    private NavMeshAgent agent;
-    private Animator animator;
-    private Transform player;
-    private PompompurinController playerController;
-    private DialogueManager dialogueManager;
-    private CombatManager combatManager;
+    private NavMeshAgent agent; // referencia al NavMeshAgent para controlar el movimiento
+    private Animator animator; // referencia al Animator para controlar las animaciones
+    private Transform player; // referencia al jugador para detectar su posición y orientarse hacia él
+    private PompompurinController playerController; // referencia al script del jugador para notificar eventos de diálogo y combate
+    private DialogueManager dialogueManager; // referencia al DialogueManager para iniciar dialogo
+    private CombatManager combatManager; // referencia al CombatManager para notificar eventos de combate y recibir información del estado del combate
+    [Header("Diálogo")]
+    public Dialogos guardianDialogue;
 
     // ── Patrulla ─────────────────────────────────────────────────
     [Header("Patrulla")]
-    public float patrolRadius = 25f;
-    public float waitTimeBetweenPoints = 1.5f;
-    public float detectionDistance = 5f;
+    public float patrolRadius = 25f; // radio dentro del cual el guardián elige puntos aleatorios para patrullar
+    public float waitTimeBetweenPoints = 1.5f; // tiempo que espera en cada punto de patrulla antes de moverse al siguiente
+    public float detectionDistance = 5f; // distancia a la que detecta al jugador para iniciar el saludo
 
-    private float waitTimer;
-    private bool hasDestination;
+    private float waitTimer; // controla el tiempo de espera entre puntos de patrulla
+    private bool hasDestination; // indica si el guardián tiene un destino válido para patrullar
 
     // ── Interacción ───────────────────────────────────────────────
     [Header("Interacción")]
-    public float interactionCooldown = 15f;
-    private bool canInteract = true;
+    public float interactionCooldown = 30f; // tiempo que tarda en poder iniciar otro saludo/combate después de terminar uno
+    private bool canInteract = true; // controla si el guardián puede iniciar un saludo/combate
     public bool playerNearby;      // acceso desde GuardianSpawner si es necesario
 
     // ── Combate ───────────────────────────────────────────────────
     [Header("Combate")]
-    public float timeBetweenAttacks = 2f;
-    public int maxHealth = 50;
-    public int weaponDamage = 10;
+    public float timeBetweenAttacks = 1.5f; // tiempo mínimo entre ataques del guardián
+    public int maxHealth = 50; // vida máxima del guardián
+    public int weaponDamage = 10; // daño que inflige el arma del guardián
 
     [Header("Arma")]
-    public GameObject weaponObject;
-    public Collider weaponCollider;
+    public GameObject weaponObject; // referencia al objeto del arma
+    public Collider weaponCollider; // referencia al collider del arma, que se activa solo durante el ataque para detectar golpes
 
     [Header("Timing del arma")]
     public float weaponActivationDelay = 0.3f;  // segundos hasta activar el collider
     public float weaponActiveDuration = 0.5f;  // segundos que el collider permanece activo
 
-    private float attackTimer;
-    private bool isAttacking;
-    private bool canReceiveDamage;
-    private int currentHealth;
+    private float attackTimer; // controla el tiempo desde el último ataque para respetar timeBetweenAttacks
+    private bool isAttacking; // indica si el guardián está actualmente ejecutando un ataque
+    private bool canReceiveDamage; // controla si el guardián puede recibir daño, solo en combate, no en patrulla o aliado
+    private int currentHealth; // vida actual del guardián, se resetea al máximo al iniciar combate o modo aliado
 
     // ── Aliado ────────────────────────────────────────────────────
     [Header("Modo Aliado")]
     public float allyDuration = 60f;
-    public float followDistance = 3f;
+    public float followDistance = 5f;
     public float allyDetectionRange = 10f;
     public LayerMask enemyLayer;
 
@@ -107,6 +99,7 @@ public class GuardianController : MonoBehaviour
         if (weaponCollider == null && weaponObject != null)
             weaponCollider = weaponObject.GetComponent<Collider>();
 
+        // Asegurarse de que el collider del arma esté desactivado al inicio
         if (weaponCollider != null)
         {
             weaponCollider.enabled = false;
@@ -114,6 +107,7 @@ public class GuardianController : MonoBehaviour
                 weaponCollider.gameObject.AddComponent<GuardianWeaponCollider>();
         }
 
+        // Asegurarse de que el objeto del arma esté desactivado al inicio
         if (weaponObject != null)
             weaponObject.SetActive(false);
 
@@ -213,13 +207,12 @@ public class GuardianController : MonoBehaviour
 
     // ═════════════════════════════════════════════════════════════
     //  DETECCIÓN DEL JUGADOR
-    //  FIX [10]: ignorar si ya hay un combate activo en la escena
     // ═════════════════════════════════════════════════════════════
     void DetectPlayer()
     {
         if (!canInteract) return;
         if (currentState != GuardianState.Patrolling) return;
-        if (combatManager != null && combatManager.IsInCombat) return; // [10]
+        if (combatManager != null && combatManager.IsInCombat) return; 
 
         float distance = Vector3.Distance(transform.position, player.position);
         if (distance <= detectionDistance)
@@ -247,7 +240,9 @@ public class GuardianController : MonoBehaviour
     {
         animator.SetBool("isGreeting", false);
         currentState = GuardianState.Talking;
-        dialogueManager?.StartGuardianDialogue(this);
+
+        if (guardianDialogue != null)
+            dialogueManager.StartGuardianDialogue(guardianDialogue, this);
     }
 
     public void EndDialogue()
