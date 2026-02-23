@@ -11,7 +11,7 @@ public class UIManager : MonoBehaviour
     private GameManager gameManager;
 
     // ==============================
-    // Menú principal
+    // Menï¿½ principal
     // ==============================
     public GameObject MenuInicial;
     public GameObject MenuPrincipal;
@@ -99,7 +99,7 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        // ENTER para pasar del menú inicial al principal
+        // ENTER para pasar del menï¿½ inicial al principal
         if (MenuInicial.activeSelf &&
             Keyboard.current != null &&
             Keyboard.current.enterKey.wasPressedThisFrame)
@@ -109,8 +109,8 @@ public class UIManager : MonoBehaviour
 
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            // Solo permitimos pausar si el HUD está activo (estamos en el juego)
-            // o si el panel de pausa ya está abierto para cerrar
+            // Solo permitimos pausar si el HUD estï¿½ activo (estamos en el juego)
+            // o si el panel de pausa ya estï¿½ abierto para cerrar
             if (HudPanel.activeSelf || PausaPanel.activeSelf)
             {
                 if (isGamePaused)
@@ -128,7 +128,7 @@ public class UIManager : MonoBehaviour
     }
 
     // ======================
-    // MÉTODO CENTRAL
+    // Mï¿½TODO CENTRAL
     // ======================
     public void ShowMenuPanel(GameObject panelToShow)
     {
@@ -142,7 +142,7 @@ public class UIManager : MonoBehaviour
     }
 
     // ======================
-    // NAVEGACIÓN PRINCIPAL
+    // NAVEGACIï¿½N PRINCIPAL
     // ======================
     public void GoToMenuPrincipal()
     {
@@ -189,8 +189,8 @@ public class UIManager : MonoBehaviour
     public void Jugar()
     {
         Debug.Log("Iniciar o regresar al juego");
-        MenuPrincipal.SetActive(false); //Oculta el menú
-        MenuPrincipalBase.SetActive(false); //Oculta el menú
+        MenuPrincipal.SetActive(false); //Oculta el menï¿½
+        MenuPrincipalBase.SetActive(false); //Oculta el menï¿½
         HudPanel.SetActive(true); //Muestra el HUD
         PausaPanel.SetActive(false);
 
@@ -206,7 +206,7 @@ public class UIManager : MonoBehaviour
 
     public void RegresarAlMenu()
     {
-        Debug.Log("Regresando al menú principal");
+        Debug.Log("Regresando al menï¿½ principal");
         ShowMenuPanel(MenuPrincipal);
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
     }
@@ -223,7 +223,7 @@ public class UIManager : MonoBehaviour
     {
         if (configSource == ConfigSource.Menu)
         {
-            // Regresa al menú principal
+            // Regresa al menï¿½ principal
             ShowMenuPanel(MenuPrincipal);
         }
         else if (configSource == ConfigSource.Game)
