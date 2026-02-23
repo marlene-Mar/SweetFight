@@ -1,61 +1,66 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 
 public class HitEffectController : MonoBehaviour
 {
     [Header("Referencias")]
-    public RawImage overlayImage;   // el Raw Image del Canvas
+    public Renderer characterRenderer; 
 
-    [Header("Defaults")]
-    public Color hitColor = Color.red;
-    public float duration = 0.5f;
-    [Range(0f, 1f)]
-    public float spread = 0.4f;
+    [Header("ConfiguraciÃ³n")]
+    public Color hitColor = new Color(0.5f, 0f, 1f, 1f); 
+    public float duration = 0.8f;
 
-    private Material _mat;
+    private Material[] _materials;
     private Coroutine _coroutine;
 
     void Awake()
     {
-        // Instanciar el material para no modificar el asset original
-        _mat = Instantiate(overlayImage.material);
-        overlayImage.material = _mat;
-        _mat.SetFloat("_HitAmount", 0f);
+        if (characterRenderer != null)
+        {
+            _materials = characterRenderer.materials;
+            
+            foreach(Material m in _materials)
+            {
+                m.SetFloat("_HitAmount", 0f);
+            }
+        }
     }
 
-    public void TriggerHit(Color color, float dur = -1f, float sp = -1f)
+    void Update()
     {
-        Debug.Log("TriggerHit llamado, color: " + color);
-
-        if (dur < 0) dur = duration;
-        if (sp < 0) sp = spread;
-
-        _mat.SetColor("_HitColor", color);
-        _mat.SetFloat("_Spread", sp);
-
-        if (_coroutine != null) StopCoroutine(_coroutine);
-        _coroutine = StartCoroutine(FadeOut(dur));
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            TriggerHit();
+        }
     }
 
-    // Sobrecarga sin parámetros (usa los defaults del Inspector)
-    public void TriggerHit() => TriggerHit(hitColor);
+    public void TriggerHit()
+    {
+        Debug.Log("Â¡Golpe recibido! Activando efectos...");
+        if (_coroutine != null) StopCoroutine(_coroutine);
+        _coroutine = StartCoroutine(FadeOut(duration));
+    }
 
     private IEnumerator FadeOut(float dur)
     {
-        _mat.SetFloat("_HitAmount", 1f);
         float elapsed = 0f;
-
         while (elapsed < dur)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / dur;
-            float opacity = 1f - (t * t);   // ease-out cuadrático
-            _mat.SetFloat("_HitAmount", opacity);
+            float intensity = 1f - (elapsed / dur);
+
+            foreach (Material m in _materials)
+            {
+                if (m != null)
+                {
+                    m.SetFloat("_HitAmount", intensity);
+                    if (m.HasProperty("_HitColor")) m.SetColor("_HitColor", hitColor);
+                    if (m.HasProperty("_AuraColor")) m.SetColor("_AuraColor", hitColor);
+                }
+            }
             yield return null;
         }
-
-        _mat.SetFloat("_HitAmount", 0f);
-        _coroutine = null;
+        // Limpieza al final
+        foreach (Material m in _materials) m.SetFloat("_HitAmount", 0f);
     }
 }

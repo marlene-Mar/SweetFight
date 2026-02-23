@@ -6,14 +6,15 @@ public class VidaJugador : MonoBehaviour
     public int vidaMaxima = 100;
     public int vidaActual;
 
+    private HitEffectController efectoGolpe;
+
     public Action<int, int> OnVidaChanged;
     public Action OnPlayerDead;
-
-    //public HitEffectController hitEffect;
 
     void Start()
     {
         vidaActual = vidaMaxima;
+        efectoGolpe = GetComponent<HitEffectController>();
         NotificarCambio();
     }
 
@@ -23,8 +24,10 @@ public class VidaJugador : MonoBehaviour
         vidaActual = Mathf.Clamp(vidaActual, 0, vidaMaxima);
 
         Debug.Log("Daño recibido: " + cantidad);
-
-        //hitEffect?.TriggerHit();
+        if (efectoGolpe != null) 
+        {
+            efectoGolpe.TriggerHit(); 
+        }
 
         NotificarCambio();
 

@@ -14,21 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Dialogos
   conversationLines:
   - speakerName: Camemi
-    dialogueLine: "\xA1Oh, pero mira quien ha llegado!"
+    dialogueLine: "Me ganaste esta vez, pero volver\xE9..."
   - speakerName: Pompompurin
-    dialogueLine: Camemi, te he estado buscando...
+    dialogueLine: "\xA1\xBFQu\xE9?! Ese no era el trato"
   - speakerName: Camemi
-    dialogueLine: "Aqu\xED estoy, aburrido. Los habitantes de este mundo no quieren
-      jugar."
-  - speakerName: Pompompurin
-    dialogueLine: "Los espantas, \xBFpor qu\xE9 los atacas? "
-  - speakerName: Camemi
-    dialogueLine: Solo estoy jugando...
-  - speakerName: Pompompurin
-    dialogueLine: Eso no es jugar, luego porque no te quieren.
-  - speakerName: Camemi
-    dialogueLine: "Shhh... Los dejar\xE9 en paz si juegas conmigo"
-  - speakerName: Pompompurin
-    dialogueLine: Bien, vamos a jugar.
-  - speakerName: Camemi
-    dialogueLine: Muajaja..., digo, es un trato.
+    dialogueLine: "\xBFCu\xE1l trato? "

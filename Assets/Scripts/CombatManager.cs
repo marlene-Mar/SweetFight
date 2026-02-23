@@ -10,13 +10,14 @@ public class CombatManager : MonoBehaviour
 
     [Header("Configuración de Combate")]
     public GameObject combatUI;
+    public GameObject combatCamemiUI;
     public UIManager uiManager;
 
     [Header("Temporizador")]
     [SerializeField] private float combatDuration = 40f;
 
     // Estado interno
-    private GuardianController currentEnemy;
+   
     private PompompurinController player;
     private VidaJugador vidaJugador;
 
@@ -27,7 +28,15 @@ public class CombatManager : MonoBehaviour
 
     private float combatTimer;
     private bool timerRunning;
+
+    //GUARDIAN
+    private GuardianController currentEnemy;
     public bool IsInCombat => timerRunning;
+    private int camemiHitsLanded;
+
+    //CAMEMI
+    private CamemiController currentCamemi;
+    private bool isCamemiCombat;
 
     // ─────────────────────────────────────────────
     //  Ciclo de vida
@@ -74,24 +83,20 @@ public class CombatManager : MonoBehaviour
         StartCoroutine(CombatTimerRoutine());
     }
 
-    public void StartCamemiCombat(CamemiController camemi, PompompurinController player)
+    public void StartCamemiCombat(CamemiController camemi, PompompurinController pompompurin)
     {
-        Debug.Log("Inicia combate Camemi");
+        Debug.Log("Combate contra Camemi iniciado");
 
-        // Evitar iniciar un segundo combate si ya hay uno activo
-        if (timerRunning)
-        {
-            Debug.LogWarning("CombatManager: Ya hay un combate activo, se ignora el nuevo.");
-            return;
-        }
+        isCamemiCombat = true;
+        currentCamemi = camemi;
+        player = pompompurin;
+        vidaJugador = player.GetComponent<VidaJugador>();
 
-        //currentEnemy = camemi;
-        //player = pompompurin;
-        //vidaJugador = player.GetComponent<VidaJugador>();
+        playerHitsLanded = camemiHitsLanded = totalDamageDealt = totalDamageTaken = 0;
 
-        // Lógica específica de Camemi
-        //camemi.EnableWeapon();
-        // lógica diferente si quieres
+        if (combatCamemiUI != null) combatCamemiUI.SetActive(true);
+
+        player.inCombat = true;
     }
 
     // ─────────────────────────────────────────────
@@ -103,9 +108,14 @@ public class CombatManager : MonoBehaviour
 
         playerHitsLanded++;
         totalDamageDealt += damage;
-        currentEnemy?.TakeDamage(damage);
+        //currentEnemy?.TakeDamage(damage);
+        if (isCamemiCombat)
+            currentCamemi?.TakeDamage(damage);
+        else
+            currentEnemy?.TakeDamage(damage);
 
-        Debug.Log($"Pompompurin golpeó → Daño: {damage} | Acumulado: {totalDamageDealt}");
+        Debug.Log($"Jugador golpeó → Daño: {damage}");
+        //Debug.Log($"Pompompurin golpeó → Daño: {damage} | Acumulado: {totalDamageDealt}");
     }
 
     public void OnGuardianHit(int damage)
@@ -119,6 +129,16 @@ public class CombatManager : MonoBehaviour
         Debug.Log($"Guardián golpeó → Daño: {damage} | Recibido total: {totalDamageTaken}");
     }
 
+    public void OnCamemiHit(int damage)
+    {
+        if (!timerRunning) return;
+
+        camemiHitsLanded++;
+        totalDamageTaken += damage;
+        vidaJugador?.RecibirDaño(damage);
+
+        Debug.Log($"Camemi golpeó → Daño: {damage} | Recibido total: {totalDamageTaken}");
+    }
     // ─────────────────────────────────────────────
     //  Fin de combate
     // ─────────────────────────────────────────────
@@ -128,8 +148,6 @@ public class CombatManager : MonoBehaviour
 
         StopAllCoroutines();
         timerRunning = false;
-
-        LogCombatStats();
 
         if (combatUI != null) combatUI.SetActive(false);
 
@@ -169,19 +187,7 @@ public class CombatManager : MonoBehaviour
         Debug.Log("Tiempo de combate agotado.");
         EndCombat(false); // EndCombat hace StopAllCoroutines + timerRunning = false
     }
-    // ─────────────────────────────────────────────
-    //  Estadísticas
-    // ─────────────────────────────────────────────
-    private void LogCombatStats()
-    {
-        Debug.Log("=== ESTADÍSTICAS DEL COMBATE ===");
-        Debug.Log($"Golpes de Pompompurin : {playerHitsLanded} | Daño total: {totalDamageDealt}");
-        Debug.Log($"Golpes del Guardián   : {guardianHitsLanded} | Daño total: {totalDamageTaken}");
-        Debug.Log("================================");
-    }
-
     
-
     // Getters opcionales para UI externa
     public int GetPlayerHits() => playerHitsLanded;
     public int GetGuardianHits() => guardianHitsLanded;

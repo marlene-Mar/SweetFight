@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class CamemiController : MonoBehaviour
 {
@@ -22,6 +23,13 @@ public class CamemiController : MonoBehaviour
     [Header("Combate")]
     public CombatManager combatManager;
     public Collider[] manoCollider;
+    private int comboCounter = 0;
+    private float attackCooldown = 1.2f;
+    private float attackTimer;
+    private bool isBlocking = false;
+
+    public int vidaMax = 100;
+    private int vidaActual;
 
     private PompompurinController playerController;
 
@@ -44,6 +52,7 @@ public class CamemiController : MonoBehaviour
 
         currentState = CamemiState.Patrolling;
 
+        vidaActual = vidaMax;
         agent.isStopped = false;
         agent.ResetPath();
 
@@ -164,24 +173,112 @@ public class CamemiController : MonoBehaviour
     void StartCombat()
     {
         currentState = CamemiState.Combat;
+        animator.SetBool("Combat", true);
         agent.isStopped = false;
     }
+
+    //void CombatBehaviour()
+    //{
+    //    float distance = Vector3.Distance(transform.position, player.position);
+
+    //    if (distance > 2f)
+    //    {
+    //        agent.isStopped = false;
+    //        agent.SetDestination(player.position);
+    //        animator.SetBool("Walk", true);
+    //    }
+    //    else
+    //    {
+    //        agent.isStopped = true;
+    //        animator.SetBool("Walk", false);
+
+    //        attackTimer += Time.deltaTime;
+
+    //        if (attackTimer >= attackCooldown)
+    //        {
+    //            ExecuteCombo();
+    //            attackTimer = 0f;
+    //        }
+    //    }
+    //}
 
     void CombatBehaviour()
     {
         float distance = Vector3.Distance(transform.position, player.position);
 
-        if (distance > 2f)
+        bool isAttacking = animator.GetCurrentAnimatorStateInfo(0).IsName("Cross Punch") ||
+                            animator.GetCurrentAnimatorStateInfo(0).IsName("Boxing") ||
+                            animator.GetCurrentAnimatorStateInfo(0).IsName("Body Block") ||
+                            animator.GetCurrentAnimatorStateInfo(0).IsName("Kidney Hit");
+
+        if (!isAttacking)
         {
-            agent.isStopped = false;
-            agent.SetDestination(player.position);
-            animator.SetBool("Walk", true);
+            if (distance > 2f)
+            {
+                agent.isStopped = false;
+                agent.SetDestination(player.position);
+                animator.SetBool("Walk", true);
+            }
+            else
+            {
+                agent.isStopped = true;
+                animator.SetBool("Walk", false);
+
+                attackTimer += Time.deltaTime;
+                if (attackTimer >= attackCooldown)
+                {
+                    ExecuteCombo();
+                    attackTimer = 0f;
+                }
+            }
+        }
+    }
+
+    void ExecuteCombo()
+    {
+        comboCounter++;
+
+        if (comboCounter <= 2)
+        {
+            animator.SetTrigger("Attack1");
+            Debug.Log("Camemi usa Golpe1");
         }
         else
         {
-            agent.isStopped = true;
-            animator.SetBool("Walk", false);
-            // animator.SetTrigger("Attack");
+            animator.SetTrigger("Attack2");
+            Debug.Log("Camemi usa Golpe2");
+            comboCounter = 0;
+        }
+    }
+
+    public void TryBlock()
+    {
+        isBlocking = Random.value > 0.7f; // 30% probabilidad
+
+        if (isBlocking)
+            animator.SetTrigger("Block");
+    }
+
+    public void TakeDamage(int damage)
+    {
+        TryBlock();
+
+        if (isBlocking)
+        {
+            Debug.Log("Camemi bloqueó el golpe!");
+            return;
+        }
+
+        vidaActual -= damage;
+
+        Debug.Log("Camemi recibe daño: " + damage +
+                  " | Vida restante: " + vidaActual);
+
+        animator.SetTrigger("RecibirGolpe");
+
+        if (vidaActual <= 0)
+        {
+            Die();
         }
     }
 
@@ -214,5 +311,34 @@ public class CamemiController : MonoBehaviour
 
         MoveToRandomPoint();
         canInteract = true;
+    }
+
+    // ========================
+    // MUERTE
+    // ========================
+    void Die()
+    {
+        Debug.Log("Camemi ha sido derrotada");
+
+        animator.SetTrigger("Morir");
+
+        agent.isStopped = true;
+
+        CombatManager.Instance.EndCombat(true);
+
+        StartCoroutine(FinalSequence());
+    }
+
+    IEnumerator FinalSequence()
+    {
+        yield return new WaitForSeconds(3f);
+
+        Debug.Log("Inicia diálogo final");
+
+        // aquí llamas tu diálogo final
+
+        yield return new WaitForSeconds(5f);
+
+        //UIManager.Instance.ShowFinalScreen();
     }
 }
