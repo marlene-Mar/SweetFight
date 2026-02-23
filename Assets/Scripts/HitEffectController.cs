@@ -26,13 +26,7 @@ public class HitEffectController : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            TriggerHit();
-        }
-    }
+
 
     public void TriggerHit()
     {
