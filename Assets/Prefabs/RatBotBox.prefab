@@ -56,10 +56,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.61944
+  m_Radius: 0.5625936
   m_Height: 1.786663
   m_Direction: 2
-  m_Center: {x: 0, y: 0.38087815, z: -0.14441216}
+  m_Center: {x: 0.05684644, y: 0.38087815, z: -0.14441216}
 --- !u!195 &5422766324768400416
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -94,11 +94,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 875e6e9b6ab5ab44eb5ebc513271531a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseEnemy
+  damage: 10
   maxHealth: 25
-  damageAmount: 10
-  attackRange: 1.5
-  attackCooldown: 1.5
-  agent: {fileID: 5422766324768400416}
+  knockbackForce: 4
+  knockbackDuration: 0.25
+  stoppingDistance: 1.2
+  damageCooldown: 1.2
 --- !u!95 &6372855623786450943
 Animator:
   serializedVersion: 7
@@ -139,7 +140,7 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 0.5
+  m_Height: 0.8
   m_Radius: 0.6
   m_SlopeLimit: 45
   m_StepOffset: 0.3

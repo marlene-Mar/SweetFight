@@ -22,7 +22,7 @@ public class CamemiController : MonoBehaviour
 
     [Header("Combate")]
     public CombatManager combatManager;
-    public Collider[] manoCollider;
+    public CamemiHitbox[] hitboxes;
     private int comboCounter = 0;
     private float attackCooldown = 1.2f;
     private float attackTimer;
@@ -140,6 +140,8 @@ public class CamemiController : MonoBehaviour
 
     void StartDialogue()
     {
+        agent.isStopped = true;
+        animator.SetBool("Walk", false);
         animator.SetBool("InDialogue", true);
         currentState = CamemiState.Talking;
 
@@ -162,7 +164,7 @@ public class CamemiController : MonoBehaviour
 
         //if (manoCollider != null)
         //    manoCollider.SetActive(true);
-
+        agent.isStopped = false;
         StartCombat();
     }
 
@@ -175,32 +177,8 @@ public class CamemiController : MonoBehaviour
         currentState = CamemiState.Combat;
         animator.SetBool("Combat", true);
         agent.isStopped = false;
+        animator.SetLayerWeight(1, 1f);
     }
-
-    //void CombatBehaviour()
-    //{
-    //    float distance = Vector3.Distance(transform.position, player.position);
-
-    //    if (distance > 2f)
-    //    {
-    //        agent.isStopped = false;
-    //        agent.SetDestination(player.position);
-    //        animator.SetBool("Walk", true);
-    //    }
-    //    else
-    //    {
-    //        agent.isStopped = true;
-    //        animator.SetBool("Walk", false);
-
-    //        attackTimer += Time.deltaTime;
-
-    //        if (attackTimer >= attackCooldown)
-    //        {
-    //            ExecuteCombo();
-    //            attackTimer = 0f;
-    //        }
-    //    }
-    //}
 
     void CombatBehaviour()
     {
@@ -282,6 +260,23 @@ public class CamemiController : MonoBehaviour
         }
     }
 
+    public void EnableHitboxes()
+    {
+        foreach (var hitbox in hitboxes)
+        {
+            hitbox.gameObject.SetActive(true);
+            hitbox.ResetHit();
+        }
+    }
+
+    public void DisableHitboxes()
+    {
+        foreach (var hitbox in hitboxes)
+        {
+            hitbox.gameObject.SetActive(false);
+        }
+    }
+
     // ========================
     // MIRAR AL JUGADOR
     // ========================
@@ -319,7 +314,7 @@ public class CamemiController : MonoBehaviour
     void Die()
     {
         Debug.Log("Camemi ha sido derrotada");
-
+        animator.SetLayerWeight(1, 0f);
         animator.SetTrigger("Morir");
 
         agent.isStopped = true;

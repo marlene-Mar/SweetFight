@@ -183,9 +183,8 @@ public class CombatManager : MonoBehaviour
         }
 
         UIManager.Instance?.UpdateTimer(0f);
-        // ← NO tocar timerRunning aquí, EndCombat lo maneja
         Debug.Log("Tiempo de combate agotado.");
-        EndCombat(false); // EndCombat hace StopAllCoroutines + timerRunning = false
+        EndCombat(false); 
     }
     
     // Getters opcionales para UI externa
