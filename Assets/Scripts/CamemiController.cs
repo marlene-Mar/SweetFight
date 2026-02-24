@@ -4,6 +4,8 @@ using System.Collections;
 
 public class CamemiController : MonoBehaviour
 {
+
+    // ESTADOS DE CAMEMI
     public enum CamemiState
     {
         Patrolling,
@@ -13,23 +15,40 @@ public class CamemiController : MonoBehaviour
     }
 
     [Header("Referencias")]
-    private NavMeshAgent agent;
-    private Animator animator;
-
-    public Transform player;
-    public DialogueManager dialogueManager;
-    public Dialogos dialogoEncuentro;
+    private NavMeshAgent agent; // para movimiento
+    private Animator animator; // para animacioneS
+    public Transform player; // referencia al jugador para detección y combate
+    public LayerMask PlayerMask;
+    public DialogueManager dialogueManager; // para manejar diálogos
+    public Dialogos dialogoEncuentro; // diálogo inicial al detectar al jugador
+    public Dialogos dialogoFinal; //diálogo final al morir Camemi
+    public GameObject pompompurin;
 
     [Header("Combate")]
     public CombatManager combatManager;
-    public CamemiHitbox[] hitboxes;
+    public CamemiHitbox[] hitboxesManos;  // los 2 colliders de puños
+    public CamemiHitbox[] hitboxesPatas;  // los 2 colliders de patas
     private int comboCounter = 0;
     private float attackCooldown = 1.2f;
     private float attackTimer;
     private bool isBlocking = false;
+    private float blockTimer = 0f;
+    private float blockCheckInterval = 2f;
+    public bool puedeHacerDaño = false;
+    private bool isAttacking;
+    private bool canReceiveDamage;
 
-    public int vidaMax = 100;
-    private int vidaActual;
+    [Header("Datos de vida Camemi")]
+    public int vidaMax = 100;// vida máxima de Camemi
+    private int vidaActual; // vida actual de Camemi
+
+
+    [Header("Daños")]
+    public int damageGolpe1 = 12; // daño de los ataques normales (puños)
+    public int damageGolpe2 = 22; // daño de los ataques fuertes (patas)
+
+    public float tiempoActivacion = 0.2f;
+    public float tiempoDesactivacion = 0.5f;
 
     private PompompurinController playerController;
 
@@ -48,7 +67,9 @@ public class CamemiController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
-        playerController = FindObjectOfType<PompompurinController>();
+        player = GameObject.FindGameObjectWithTag("Player").transform; 
+        pompompurin = GameObject.FindGameObjectWithTag("Player"); 
+        playerController = pompompurin.GetComponent<PompompurinController>();
 
         currentState = CamemiState.Patrolling;
 
@@ -138,34 +159,35 @@ public class CamemiController : MonoBehaviour
     // DIÁLOGO
     // ========================
 
+    // Este método es llamado por el DialogueManager al iniciar el diálogo
     void StartDialogue()
     {
-        agent.isStopped = true;
-        animator.SetBool("Walk", false);
-        animator.SetBool("InDialogue", true);
-        currentState = CamemiState.Talking;
-
+        agent.isStopped = true; // Detenemos el movimiento
+        animator.SetBool("Walk", false); // Detenemos la animación de caminar
+        animator.SetBool("InDialogue", true); // Activamos la capa de diálogo para que Camemi mire al jugador
+        currentState = CamemiState.Talking; // Cambiamos el estado a hablando
+        
         if (dialogoEncuentro != null && dialogueManager != null)
         {
-            dialogueManager.StartCamemiDialogue(dialogoEncuentro, this);
+            dialogueManager.StartCamemiDialogue(dialogoEncuentro, this); // Iniciamos el diálogo con Camemi
         }
     }
 
+    // Este método es llamado por el DialogueManager al finalizar el diálogo
     public void EndDialogue()
     {
-        currentState = CamemiState.Combat;
+        currentState = CamemiState.Combat; // Cambiamos el estado a combate
 
-        animator.SetBool("InDialogue", false);
+        animator.SetBool("InDialogue", false); // Desactivamos la capa de diálogo
 
-        playerController?.ExitDialogue();
-        playerController?.StartCombatAfterDialogue();
-
-        combatManager?.StartCamemiCombat(this, playerController);
+        playerController?.ExitDialogue(); // Le decimos al jugador que el diálogo ha terminado para que pueda volver a moverse
+        playerController?.StartCombatAfterDialogue(); // Le decimos al jugador que inicie el combate después del diálogo
+        combatManager?.StartCamemiCombat(this, playerController); // Le decimos al CombatManager que inicie el combate con Camemi y el jugador
 
         //if (manoCollider != null)
         //    manoCollider.SetActive(true);
-        agent.isStopped = false;
-        StartCombat();
+        agent.isStopped = false; // Reanudamos el movimiento para que Camemi pueda perseguir al jugador
+        StartCombat(); // Iniciamos el combate
     }
 
     // ========================
@@ -175,106 +197,117 @@ public class CamemiController : MonoBehaviour
     void StartCombat()
     {
         currentState = CamemiState.Combat;
+
         animator.SetBool("Combat", true);
-        agent.isStopped = false;
-        animator.SetLayerWeight(1, 1f);
+        canReceiveDamage = true;
+
+        attackTimer = 0f;
+        isAttacking = false;
+
+        Invoke(nameof(ExecuteCombo), 0.5f); 
     }
 
     void CombatBehaviour()
     {
+        if (isAttacking) return;
+
         float distance = Vector3.Distance(transform.position, player.position);
 
-        bool isAttacking = animator.GetCurrentAnimatorStateInfo(0).IsName("Cross Punch") ||
-                            animator.GetCurrentAnimatorStateInfo(0).IsName("Boxing") ||
-                            animator.GetCurrentAnimatorStateInfo(0).IsName("Body Block") ||
-                            animator.GetCurrentAnimatorStateInfo(0).IsName("Kidney Hit");
-
-        if (!isAttacking)
+        if (distance > 2f)
         {
-            if (distance > 2f)
-            {
-                agent.isStopped = false;
-                agent.SetDestination(player.position);
-                animator.SetBool("Walk", true);
-            }
-            else
-            {
-                agent.isStopped = true;
-                animator.SetBool("Walk", false);
+            agent.isStopped = false;
+            agent.SetDestination(player.position);
+            animator.SetBool("Walk", true);
+        }
+        else
+        {
+            agent.isStopped = true;
+            animator.SetBool("Walk", false);
 
-                attackTimer += Time.deltaTime;
-                if (attackTimer >= attackCooldown)
-                {
-                    ExecuteCombo();
-                    attackTimer = 0f;
-                }
+            attackTimer += Time.deltaTime;
+            if (attackTimer >= attackCooldown)
+            {
+                attackTimer = 0f;
+                ExecuteCombo();
             }
         }
     }
 
     void ExecuteCombo()
     {
+        if (isAttacking) return;
+
+        isAttacking = true;
         comboCounter++;
 
         if (comboCounter <= 2)
         {
             animator.SetTrigger("Attack1");
-            Debug.Log("Camemi usa Golpe1");
+            StartCoroutine(ActivarHitboxes(hitboxesManos));
         }
         else
         {
             animator.SetTrigger("Attack2");
-            Debug.Log("Camemi usa Golpe2");
+            StartCoroutine(ActivarHitboxes(hitboxesPatas));
             comboCounter = 0;
         }
+
+        StartCoroutine(AttackCooldown());
     }
 
-    public void TryBlock()
+    IEnumerator AttackCooldown()
     {
-        isBlocking = Random.value > 0.7f; // 30% probabilidad
-
-        if (isBlocking)
-            animator.SetTrigger("Block");
+        yield return new WaitForSeconds(attackCooldown);
+        isAttacking = false;
     }
+
+    //public void TryBlock()
+    //{
+    //    isBlocking = Random.value > 0.7f; // 30% probabilidad
+
+    //    if (isBlocking)
+    //        animator.SetTrigger("Block");
+    //}
 
     public void TakeDamage(int damage)
     {
-        TryBlock();
+        if (!canReceiveDamage) return;
 
-        if (isBlocking)
+        if (Random.value > 0.7f)
         {
-            Debug.Log("Camemi bloqueó el golpe!");
+            animator.SetTrigger("Block");
             return;
         }
 
         vidaActual -= damage;
-
-        Debug.Log("Camemi recibe daño: " + damage +
-                  " | Vida restante: " + vidaActual);
-
         animator.SetTrigger("RecibirGolpe");
 
         if (vidaActual <= 0)
-        {
             Die();
-        }
     }
 
     public void EnableHitboxes()
     {
-        foreach (var hitbox in hitboxes)
-        {
-            hitbox.gameObject.SetActive(true);
-            hitbox.ResetHit();
-        }
+        Debug.Log("Hitboxes ACTIVADAS");
+        foreach (var hitbox in hitboxesManos) hitbox.gameObject.SetActive(true);
+        foreach (var hitbox in hitboxesPatas) hitbox.gameObject.SetActive(true);
     }
 
     public void DisableHitboxes()
     {
-        foreach (var hitbox in hitboxes)
-        {
-            hitbox.gameObject.SetActive(false);
-        }
+        Debug.Log("Hitboxes DESACTIVADAS");
+        foreach (var hitbox in hitboxesManos) hitbox.gameObject.SetActive(false);
+        foreach (var hitbox in hitboxesPatas) hitbox.gameObject.SetActive(false);
+    }
+
+    public void ActivarDaño()
+    {
+        puedeHacerDaño = true;
+    }
+
+    public void DesactivarDaño()
+    {
+        puedeHacerDaño = false;
     }
 
     // ========================
@@ -324,16 +357,36 @@ public class CamemiController : MonoBehaviour
         StartCoroutine(FinalSequence());
     }
 
+    public void EnterCombat()
+    {
+        animator.SetBool("Combat", true);
+    }
+
+    public void ExitCombat()
+    {
+        animator.SetBool("Combat", false);
+    }
+
     IEnumerator FinalSequence()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2.5f);
 
-        Debug.Log("Inicia diálogo final");
-
-        // aquí llamas tu diálogo final
+        if (dialogoFinal != null && dialogueManager != null)
+            dialogueManager.StartCamemiDialogue(dialogoFinal, this);
 
         yield return new WaitForSeconds(5f);
 
-        //UIManager.Instance.ShowFinalScreen();
+        // UIManager.Instance?.ShowFinalScreen(); // descomenta cuando tengas la pantalla lista
+        Debug.Log("Aquí iría la pantalla final");
+    }
+
+    private IEnumerator ActivarHitboxes(CamemiHitbox[] grupo)
+    {
+        yield return new WaitForSeconds(tiempoActivacion);
+        foreach (var h in grupo) h.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(tiempoDesactivacion - tiempoActivacion);
+        foreach (var h in grupo) h.gameObject.SetActive(false);
     }
 }
+

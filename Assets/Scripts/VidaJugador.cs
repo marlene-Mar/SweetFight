@@ -28,6 +28,7 @@ public class VidaJugador : MonoBehaviour
         {
             efectoGolpe.TriggerHit(); 
         }
+        Debug.Log("Vida actual del jugador: " + vidaActual);
 
         NotificarCambio();
 

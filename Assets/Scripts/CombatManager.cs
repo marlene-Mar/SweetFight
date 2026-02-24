@@ -14,7 +14,7 @@ public class CombatManager : MonoBehaviour
     public UIManager uiManager;
 
     [Header("Temporizador")]
-    [SerializeField] private float combatDuration = 40f;
+    [SerializeField] private float combatDuration = 90f;
 
     // Estado interno
    
@@ -51,6 +51,9 @@ public class CombatManager : MonoBehaviour
     void Start()
     {
         if (combatUI != null) combatUI.SetActive(false);
+        if (combatCamemiUI != null) combatCamemiUI.SetActive(false);
+
+
     }
 
     // ─────────────────────────────────────────────
@@ -87,6 +90,12 @@ public class CombatManager : MonoBehaviour
     {
         Debug.Log("Combate contra Camemi iniciado");
 
+        if (timerRunning)
+        {
+            Debug.LogWarning("Ya hay combate activo.");
+            return;
+        }
+
         isCamemiCombat = true;
         currentCamemi = camemi;
         player = pompompurin;
@@ -97,6 +106,8 @@ public class CombatManager : MonoBehaviour
         if (combatCamemiUI != null) combatCamemiUI.SetActive(true);
 
         player.inCombat = true;
+
+        StartCoroutine(CombatTimerRoutine());
     }
 
     // ─────────────────────────────────────────────
@@ -128,17 +139,19 @@ public class CombatManager : MonoBehaviour
 
         Debug.Log($"Guardián golpeó → Daño: {damage} | Recibido total: {totalDamageTaken}");
     }
-
+ 
     public void OnCamemiHit(int damage)
     {
-        if (!timerRunning) return;
+        if (!player.inCombat) return;
 
         camemiHitsLanded++;
         totalDamageTaken += damage;
+
         vidaJugador?.RecibirDaño(damage);
 
         Debug.Log($"Camemi golpeó → Daño: {damage} | Recibido total: {totalDamageTaken}");
     }
+
     // ─────────────────────────────────────────────
     //  Fin de combate
     // ─────────────────────────────────────────────
@@ -150,20 +163,24 @@ public class CombatManager : MonoBehaviour
         timerRunning = false;
 
         if (combatUI != null) combatUI.SetActive(false);
+        if (combatCamemiUI != null) combatCamemiUI.SetActive(false);
 
-        // Avisar al jugador UNA sola vez
         player?.ExitCombat();
 
-        if (playerWon)
+        if (isCamemiCombat)
         {
-            Debug.Log("¡Victoria! El guardián se une al equipo.");
-            // BecomeAlly se llama desde GuardianController.Die() con delay,
-            // así que aquí NO lo llamamos para respetar la animación de muerte.
+            if (!playerWon)
+            {
+                Debug.Log("Tiempo agotado en combate Camemi.");
+                // Decide qué pasa si el jugador pierde vs Camemi
+            }
         }
         else
         {
-            Debug.Log("Tiempo agotado. El guardián vuelve a patrullar.");
-            currentEnemy?.EndCombat();
+            if (playerWon)
+                Debug.Log("Victoria contra guardián.");
+            else
+                currentEnemy?.EndCombat();
         }
     }
 

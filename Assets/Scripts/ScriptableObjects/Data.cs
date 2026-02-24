@@ -1,16 +1,16 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/Data")]
 
 public class Data : ScriptableObject
 {
-    [SerializeField]
-    private int playerHealth;
-    private float playerPositionX;
-    private float playerPositionY;
-    private float playerPositionZ;
-    private int playerInventory;
-    private int playerGuardians;
+    public int playerHealth;
+    public float playerPositionX;
+    public float playerPositionY;
+    public float playerPositionZ;
+    public int playerInventory;
+    public int playerGuardians;
 
 }

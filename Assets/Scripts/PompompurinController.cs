@@ -323,18 +323,18 @@ public class PompompurinHandCollider : MonoBehaviour
 
         Debug.Log($"Mano tocó: {other.name} | Tag: {other.tag}");
 
-        // ── MouseEnemy ────────────────────────────────────────────────
-        MouseEnemy mouse = other.GetComponent<MouseEnemy>()
-                        ?? other.GetComponentInParent<MouseEnemy>();
-        if (mouse != null && mouse.CanReceiveDamage())
-        {
-            hasHit = true;
-            Vector3 hitDir = (mouse.transform.position - transform.position).normalized;
-            hitDir.y = 0.2f;
-            mouse.TakeDamage(playerController.GetCurrentDamage(), hitDir);
-            playerController.NotifyHitLanded();
-            return;
-        }
+        //// ── MouseEnemy ────────────────────────────────────────────────
+        //MouseEnemy mouse = other.GetComponent<MouseEnemy>()
+        //                ?? other.GetComponentInParent<MouseEnemy>();
+        //if (mouse != null && mouse.CanReceiveDamage())
+        //{
+        //    hasHit = true;
+        //    Vector3 hitDir = (mouse.transform.position - transform.position).normalized;
+        //    hitDir.y = 0.2f;
+        //    mouse.TakeDamage(playerController.GetCurrentDamage(), hitDir);
+        //    playerController.NotifyHitLanded();
+        //    return;
+        //}
 
         //// ── CamemiController   ─────────────────────────────────
         //CamemiController camemi = other.GetComponent<CamemiController>()
