@@ -15,15 +15,15 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  m_FogMode: 3
+  m_FogColor: {r: 1, g: 0.9037736, b: 0.99994427, a: 1}
+  m_FogMode: 1
   m_FogDensity: 0.01
   m_LinearFogStart: 0
-  m_LinearFogEnd: 300
+  m_LinearFogEnd: 380
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1.05
+  m_AmbientIntensity: 1.5
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.63925666, g: 0.3780349, b: 0.6981132, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: 8372d2429ec639e468000609a651d5a0, type: 2}
@@ -5393,7 +5393,7 @@ Light:
   serializedVersion: 11
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.5
+  m_Intensity: 1.3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -29639,7 +29639,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1510030661
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36556,7 +36556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshLink
   m_SerializedVersion: 1
-  m_AgentTypeID: 0
+  m_AgentTypeID: 658490984
   m_StartPoint: {x: 19.37693, y: -0.6383267, z: -5.1758685}
   m_EndPoint: {x: 13.299396, y: -0.72084045, z: -2.399127}
   m_StartTransform: {fileID: 0}
@@ -36581,9 +36581,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshLink
   m_SerializedVersion: 1
-  m_AgentTypeID: 0
-  m_StartPoint: {x: -12.69226, y: 0.10171321, z: -1.3670812}
-  m_EndPoint: {x: -18.742022, y: -0.28305814, z: -3.417074}
+  m_AgentTypeID: 658490984
+  m_StartPoint: {x: -15.149485, y: 0.10171321, z: -1.3670812}
+  m_EndPoint: {x: -19.09304, y: 0.14943318, z: -3.153773}
   m_StartTransform: {fileID: 0}
   m_EndTransform: {fileID: 0}
   m_Activated: 1
