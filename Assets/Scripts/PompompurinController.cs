@@ -45,19 +45,15 @@ public class PompompurinController : MonoBehaviour
         combatManager = FindObjectOfType<CombatManager>();
         vidaJugador = GetComponent<VidaJugador>();
 
-        // Asegurarse de que los colliders de las manos estén desactivados al inicio
         foreach (var col in manoColliders)
         {
-            // Desactivar colliders al inicio para evitar detecciones no deseadas
             col.enabled = false;
             if (col.GetComponent<PompompurinHandCollider>() == null)
                 col.gameObject.AddComponent<PompompurinHandCollider>();
         }
 
         if (vidaJugador != null)
-        {
             vidaJugador.OnPlayerDead += Die;
-        }
     }
 
     void Update()
@@ -103,7 +99,6 @@ public class PompompurinController : MonoBehaviour
                 ref smoothVelocity,
                 smoothTime
             );
-
             transform.forward = forward;
         }
     }
@@ -123,7 +118,6 @@ public class PompompurinController : MonoBehaviour
         {
             if (verticalVelocity.y < 0)
                 verticalVelocity.y = -2f;
-
             pompompurinAnimator.SetBool("Jump", false);
         }
         else
@@ -148,7 +142,7 @@ public class PompompurinController : MonoBehaviour
     public void StartCombatAfterDialogue()
     {
         inCombat = true;
-        pompompurinAnimator.SetBool("InCombat", true);
+        pompompurinAnimator.SetBool("Combat", true);
     }
 
     void DetectCombat()
@@ -156,11 +150,10 @@ public class PompompurinController : MonoBehaviour
         if (inCombat || isInDialogue) return;
 
         bool enemiesNearby = Physics.CheckSphere(transform.position, combatRange, enemyLayer);
-
         if (enemiesNearby)
         {
             inCombat = true;
-            pompompurinAnimator.SetBool("InCombat", true);
+            pompompurinAnimator.SetBool("Combat", true);
         }
     }
 
@@ -168,7 +161,7 @@ public class PompompurinController : MonoBehaviour
     {
         inCombat = false;
         isAttacking = false;
-        pompompurinAnimator.SetBool("InCombat", false);
+        pompompurinAnimator.SetBool("Combat", false);
     }
 
     void HandleAttackInput()
@@ -189,7 +182,6 @@ public class PompompurinController : MonoBehaviour
         {
             currentDamage = damageGolpe1;
             pompompurinAnimator.SetTrigger("Attack1");
-            Debug.Log("Pompompurin: Golpe 1 ejecutado, daño " + currentDamage);
             golpe1Count++;
             lastHitTime = Time.time;
             StartCoroutine(AttackWindow(0.2f, 0.35f));
@@ -202,14 +194,19 @@ public class PompompurinController : MonoBehaviour
 
         yield return new WaitForSeconds(delay);
 
+        // Activar colliders de manos
         foreach (var col in manoColliders)
             col.enabled = true;
 
         yield return new WaitForSeconds(duration);
 
+        // Desactivar colliders
         foreach (var col in manoColliders)
             col.enabled = false;
 
+        // Liberar isAttacking un poco antes del final de la animación
+        // para que combos rápidos no pierdan inputs
+        yield return new WaitForSeconds(0.05f);
         isAttacking = false;
     }
 
@@ -228,28 +225,21 @@ public class PompompurinController : MonoBehaviour
             pompompurinAnimator.SetFloat("life", vidaJugador.vidaActual);
     }
 
-    public int GetCurrentDamage()
-    {
-        return currentDamage;
-    }
+    public int GetCurrentDamage() => currentDamage;
 
     void Die()
     {
-        // Detener movimiento inmediatamente
         moveDirection = Vector3.zero;
         verticalVelocity = Vector3.zero;
         isAttacking = false;
         isInDialogue = false;
 
-        // Desactivar colliders de manos si están activos
         foreach (var col in manoColliders)
             col.enabled = false;
 
-        // Forzar parámetros antes de activar muerte
         pompompurinAnimator.SetFloat("Speed", 0f);
-        pompompurinAnimator.SetBool("InCombat", false);
+        pompompurinAnimator.SetBool("Combat", false);
         pompompurinAnimator.SetBool("Jump", false);
-
         pompompurinAnimator.SetBool("Die", true);
 
         Debug.Log("Pompompurin ha muerto!");
@@ -257,13 +247,11 @@ public class PompompurinController : MonoBehaviour
         if (combatManager != null)
             combatManager.EndCombat(false);
 
-        // Usar coroutine en lugar de disabled inmediato
         StartCoroutine(DisableAfterDeath());
     }
 
     IEnumerator DisableAfterDeath()
     {
-        // Esperar a que el Animator haga la transición
         yield return new WaitForSeconds(0.1f);
         enabled = false;
     }
@@ -278,6 +266,9 @@ public class PompompurinController : MonoBehaviour
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  PompompurinHandCollider — detecta colisiones de las manos con enemigos
+// ─────────────────────────────────────────────────────────────────────────────
 public class PompompurinHandCollider : MonoBehaviour
 {
     private PompompurinController playerController;
@@ -292,63 +283,31 @@ public class PompompurinHandCollider : MonoBehaviour
     }
 
     void OnEnable() => hasHit = false;
-    void OnDisable() => hasHit = false; // ← faltaba esto
+    void OnDisable() => hasHit = false; // Reset al desactivar por combos rápidos
 
-    //void OnTriggerEnter(Collider other)
-    //{
-    //    Debug.Log($"Mano tocó: {other.name} | Tag: {other.tag}"); // ← diagnóstico temporal
+    void OnTriggerEnter(Collider other) => ProcessHit(other);
 
-    //    if (hasHit) return;
-    //    if (playerController == null || !playerController.isAttacking) return;
+    // Respaldo: si el enemigo ya está dentro del collider al activarse
+    void OnTriggerStay(Collider other) => ProcessHit(other);
 
-    //    // Buscar GuardianController en el objeto o cualquier padre, sin depender de tags ni nombres
-    //    GuardianController guardian = other.GetComponentInParent<GuardianController>();
-
-    //    if (guardian != null && guardian.CanReceiveDamage())
-    //    {
-    //        Debug.Log($"¡Golpe registrado en: {other.name} | Daño: {playerController.GetCurrentDamage()}");
-    //        hasHit = true;
-    //        playerController.NotifyHitLanded();
-    //    }
-    //}
-
-    // ─────────────────────────────────────────────────────────────────
-    //  PARCHE — reemplaza SOLO el método OnTriggerEnter dentro de
-    //  la clase PompompurinHandCollider en PompompurinController.cs
-    // ─────────────────────────────────────────────────────────────────
-    void OnTriggerEnter(Collider other)
+    void ProcessHit(Collider other)
     {
         if (hasHit) return;
         if (playerController == null || !playerController.isAttacking) return;
 
-        Debug.Log($"Mano tocó: {other.name} | Tag: {other.tag}");
+        // ── Camemi ────────────────────────────────────────────────────
+        CamemiController camemi = other.GetComponent<CamemiController>()
+                               ?? other.GetComponentInParent<CamemiController>();
+        if (camemi != null && camemi.CanReceiveDamage())
+        {
+            hasHit = true;
+            camemi.TakeDamage(playerController.GetCurrentDamage());
+            playerController.NotifyHitLanded();
+            Debug.Log($"[Mano] Golpe en Camemi — daño: {playerController.GetCurrentDamage()}");
+            return;
+        }
 
-        //// ── MouseEnemy ────────────────────────────────────────────────
-        //MouseEnemy mouse = other.GetComponent<MouseEnemy>()
-        //                ?? other.GetComponentInParent<MouseEnemy>();
-        //if (mouse != null && mouse.CanReceiveDamage())
-        //{
-        //    hasHit = true;
-        //    Vector3 hitDir = (mouse.transform.position - transform.position).normalized;
-        //    hitDir.y = 0.2f;
-        //    mouse.TakeDamage(playerController.GetCurrentDamage(), hitDir);
-        //    playerController.NotifyHitLanded();
-        //    return;
-        //}
-
-        //// ── CamemiController   ─────────────────────────────────
-        //CamemiController camemi = other.GetComponent<CamemiController>()
-        //                       ?? other.GetComponentInParent<CamemiController>();
-        //if (camemi != null && camemi.CanReceiveDamage())
-        //{
-        //    hasHit = true;
-        //    camemi.RecibirDaño(playerController.GetCurrentDamage());
-        //    playerController.NotifyHitLanded();
-        //    Debug.Log($"[Mano] Golpe en Camemi — daño: {playerController.GetCurrentDamage()}");
-        //    return;
-        //}
-
-        // ── GuardianController ────────────────────────────────────────
+        // ── Guardian ──────────────────────────────────────────────────
         GuardianController guardian = other.GetComponent<GuardianController>()
                                    ?? other.GetComponentInParent<GuardianController>();
         if (guardian != null && guardian.CanReceiveDamage())

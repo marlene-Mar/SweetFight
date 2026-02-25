@@ -21,16 +21,15 @@ public class GameManager : MonoBehaviour
     //  CONTADOR DE GUARDIANES ALIADOS
     // ══════════════════════════════════════════════════════════
     [Header("Guardian Ally Counter")]
-    [Tooltip("Texto que muestra el contador de guardianes aliados (TextMeshPro)")]
     public TextMeshProUGUI guardianAllyCounterText;
-
-    [Tooltip("Prefijo del texto mostrado")]
     public string counterPrefix = "x0";
-
-    [Tooltip("Muestra logs del contador en consola")]
     public bool debugCounterLogs = true;
-
     private int guardianAllyCount = 0;
+
+    // ══════════════════════════════════════════════════════════
+    //  CAMEMI
+    // ══════════════════════════════════════════════════════════
+    private CamemiController camemiController;
 
     // ══════════════════════════════════════════════════════════
     //  AUDIO
@@ -53,7 +52,7 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); //Para cambio de escenas
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -63,41 +62,76 @@ public class GameManager : MonoBehaviour
 
     void OnEnable()
     {
-        // Suscribirse a los eventos de guardianes aliados
         GuardianController.OnGuardianBecameAlly += IncrementGuardianCounter;
         GuardianController.OnGuardianLeftAlly += DecrementGuardianCounter;
+        SceneManager.sceneLoaded += OnSceneLoaded; // Re-buscar refs al cambiar escena
     }
 
     void OnDisable()
     {
-        // Desuscribirse para evitar memory leaks
         GuardianController.OnGuardianBecameAlly -= IncrementGuardianCounter;
         GuardianController.OnGuardianLeftAlly -= DecrementGuardianCounter;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void Start()
     {
         PlayMusicByState(GameState.Menu);
+        ConnectReferences();
+        UpdateCandyBar();
+        if (maxMessageText != null) maxMessageText.gameObject.SetActive(false);
+        UpdateGuardianAllyCounterUI();
+    }
 
-        // Configurar barra de vida del jugador
-        vidaJugador = FindAnyObjectByType<VidaJugador>();
-        if (vidaJugador != null)
+    // Se llama automáticamente al cargar una escena nueva (por DontDestroyOnLoad)
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        ConnectReferences();
+    }
+
+    /// <summary>Busca y suscribe todas las referencias de vida en la escena activa.</summary>
+    void ConnectReferences()
+    {
+        // ── Jugador ───────────────────────────────────────────
+        VidaJugador foundVida = FindAnyObjectByType<VidaJugador>();
+        if (foundVida != null && foundVida != vidaJugador)
         {
+            // Desuscribir el anterior si existía
+            if (vidaJugador != null)
+            {
+                vidaJugador.OnVidaChanged -= UpdateHealthBarPlayer;
+                vidaJugador.OnPlayerDead -= Die;
+            }
+
+            vidaJugador = foundVida;
             vidaJugador.OnVidaChanged += UpdateHealthBarPlayer;
             vidaJugador.OnPlayerDead += Die;
+
+            // Forzar el fill inicial correcto
+            UpdateHealthBarPlayer(vidaJugador.vidaActual, vidaJugador.vidaMaxima);
+            Debug.Log("[GameManager] VidaJugador conectada.");
         }
 
-        // Configurar barra de vida del guardián
+        // ── Guardián ──────────────────────────────────────────
         GuardianController guardian = FindAnyObjectByType<GuardianController>();
         if (guardian != null)
         {
             guardian.OnVidaChanged += UpdateHealthBarGuardian;
+            Debug.Log("[GameManager] GuardianController conectado.");
         }
-        UpdateCandyBar();
-        // Asegura que el mensaje de candy coins máxima esté oculto al inicio
-        maxMessageText.gameObject.SetActive(false);
-        // Inicializar contador de guardianes
-        UpdateGuardianAllyCounterUI();
+
+        // ── Camemi ────────────────────────────────────────────
+        CamemiController camemi = FindAnyObjectByType<CamemiController>();
+        if (camemi != null && camemi != camemiController)
+        {
+            camemiController = camemi;
+            // Suscribirse al evento de vida de Camemi
+            camemiController.OnVidaChanged += UpdateHealthBarCamemi;
+
+            // Forzar el fill inicial
+            UpdateHealthBarCamemi(camemiController.VidaActual, camemiController.VidaMax);
+            Debug.Log("[GameManager] CamemiController conectado.");
+        }
     }
 
     // ══════════════════════════════════════════════════════════
@@ -106,9 +140,19 @@ public class GameManager : MonoBehaviour
     void UpdateHealthBarPlayer(int vidaActual, int vidaMaxima)
     {
         if (healthPompompurinBar != null)
-        {
             healthPompompurinBar.fillAmount = (float)vidaActual / vidaMaxima;
-        }
+    }
+
+    public void UpdateHealthBarGuardian(int vidaActual, int vidaMaxima)
+    {
+        if (healthGuardianBar != null)
+            healthGuardianBar.fillAmount = (float)vidaActual / vidaMaxima;
+    }
+
+    void UpdateHealthBarCamemi(int vidaActual, int vidaMaxima)
+    {
+        if (healthCamemiBar != null)
+            healthCamemiBar.fillAmount = (float)vidaActual / vidaMaxima;
     }
 
     public void TakeDamage(int damage)
@@ -120,23 +164,14 @@ public class GameManager : MonoBehaviour
     void Die()
     {
         Debug.Log("Game Over");
-        // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        // Time.timeScale = 0f; // Pausa el juego
     }
 
-    public void UpdateHealthBarGuardian(int vidaActual, int vidaMaxima)
-    {
-        if (healthGuardianBar != null)
-        {
-            healthGuardianBar.fillAmount = (float)vidaActual / vidaMaxima;
-        }
-    }
-
-    //Candy Coins Bar
+    // ══════════════════════════════════════════════════════════
+    //  CANDY COINS
+    // ══════════════════════════════════════════════════════════
     public void AddCandy(int amount)
     {
-        if (currentCandies >= maxCandies)
-            return;
+        if (currentCandies >= maxCandies) return;
 
         currentCandies += amount;
         UpdateCandyBar();
@@ -144,14 +179,18 @@ public class GameManager : MonoBehaviour
         if (currentCandies >= maxCandies)
         {
             currentCandies = maxCandies;
-            maxMessageText.gameObject.SetActive(true);
-            maxMessageText.text = "¡CandyCoins al máximo!";
+            if (maxMessageText != null)
+            {
+                maxMessageText.gameObject.SetActive(true);
+                maxMessageText.text = "¡CandyCoins al máximo!";
+            }
         }
     }
 
     void UpdateCandyBar()
     {
-        candyCoinsBar.fillAmount = (float)currentCandies / (float)maxCandies;
+        if (candyCoinsBar != null)
+            candyCoinsBar.fillAmount = (float)currentCandies / maxCandies;
     }
 
     // ══════════════════════════════════════════════════════════
@@ -160,43 +199,30 @@ public class GameManager : MonoBehaviour
     void IncrementGuardianCounter()
     {
         guardianAllyCount++;
-
-        if (debugCounterLogs)
-            Debug.Log($"[GameManager] +1 Guardián Aliado → Total: {guardianAllyCount}");
-
+        if (debugCounterLogs) Debug.Log($"[GameManager] +1 Guardián Aliado → Total: {guardianAllyCount}");
         UpdateGuardianAllyCounterUI();
     }
 
     void DecrementGuardianCounter()
     {
         guardianAllyCount = Mathf.Max(0, guardianAllyCount - 1);
-
-        if (debugCounterLogs)
-            Debug.Log($"[GameManager] -1 Guardián Aliado → Total: {guardianAllyCount}");
-
+        if (debugCounterLogs) Debug.Log($"[GameManager] -1 Guardián Aliado → Total: {guardianAllyCount}");
         UpdateGuardianAllyCounterUI();
     }
 
     void UpdateGuardianAllyCounterUI()
     {
-        string displayText = counterPrefix + guardianAllyCount;
-
         if (guardianAllyCounterText != null)
-            guardianAllyCounterText.text = displayText;
-
+            guardianAllyCounterText.text = counterPrefix + guardianAllyCount;
     }
 
-    /// <summary>Obtiene el número actual de guardianes aliados.</summary>
     public int GetGuardianAllyCount() => guardianAllyCount;
 
-    /// <summary>Reinicia el contador de guardianes a 0 (útil al iniciar nueva partida).</summary>
     public void ResetGuardianCounter()
     {
         guardianAllyCount = 0;
         UpdateGuardianAllyCounterUI();
-
-        if (debugCounterLogs)
-            Debug.Log("[GameManager] Contador de guardianes reiniciado.");
+        if (debugCounterLogs) Debug.Log("[GameManager] Contador de guardianes reiniciado.");
     }
 
     // ══════════════════════════════════════════════════════════
@@ -207,15 +233,9 @@ public class GameManager : MonoBehaviour
         int index = 0;
         switch (state)
         {
-            case GameState.Menu:
-                index = 0;
-                break;
-            case GameState.Gameplay:
-                index = 1;
-                break;
-            case GameState.Pausa:
-                index = 2;
-                break;
+            case GameState.Menu: index = 0; break;
+            case GameState.Gameplay: index = 1; break;
+            case GameState.Pausa: index = 2; break;
         }
 
         if (musicSource.clip == musicCollection.audioClips[index] && musicSource.isPlaying)
@@ -228,28 +248,12 @@ public class GameManager : MonoBehaviour
     public void PlaySfx(int index)
     {
         if (sfxCollection != null && index >= 0 && index < sfxCollection.Length)
-        {
             sfxSource.PlayOneShot(sfxCollection[index]);
-        }
     }
 
-    public void StopMusic()
-    {
-        musicSource.Stop();
-    }
+    public void StopMusic() => musicSource.Stop();
 
-    public void Musicvolume(float volume)
-    {
-        audioMixer.SetFloat("MusicVolume", volume);
-    }
-
-    public void SFXVolume(float volume)
-    {
-        audioMixer.SetFloat("SFXVolume", volume);
-    }
-
-    public void MasterVolume(float volume)
-    {
-        audioMixer.SetFloat("GeneralVolume", volume);
-    }
+    public void Musicvolume(float volume) => audioMixer.SetFloat("MusicVolume", volume);
+    public void SFXVolume(float volume) => audioMixer.SetFloat("SFXVolume", volume);
+    public void MasterVolume(float volume) => audioMixer.SetFloat("GeneralVolume", volume);
 }

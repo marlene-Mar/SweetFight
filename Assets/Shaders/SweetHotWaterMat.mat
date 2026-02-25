@@ -39,12 +39,12 @@ Material:
     m_Ints: []
     m_Floats:
     - _Distortion_Speed: 0.2
-    - _Distortion_Stregth: 1
+    - _Distortion_Stregth: 0.2
     - _Foam_Edge_Fade: 2
     - _Opacity: 0.5
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Smoothness: 0.8
+    - _Smoothness: 0.5
     m_Colors:
     - _Foam_Color: {r: 1, g: 1, b: 1, a: 1}
     - _WaterColor: {r: 0.7294118, g: 0, b: 0.34965473, a: 1}

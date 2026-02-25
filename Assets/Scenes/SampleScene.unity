@@ -23,9 +23,9 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1.5
+  m_AmbientIntensity: 1.25
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.63925666, g: 0.3780349, b: 0.6981132, a: 1}
+  m_SubtractiveShadowColor: {r: 0.5129936, g: 0.22549659, b: 0.5773585, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: 8372d2429ec639e468000609a651d5a0, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
@@ -6180,18 +6180,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4332706925441422008, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1274129371}
-    - targetCorrespondingSourceObject: {fileID: -6370085079684087283, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1667308100}
     - targetCorrespondingSourceObject: {fileID: -4728426434207774260, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 540367369}
-    - targetCorrespondingSourceObject: {fileID: 9171100556185337, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
+      addedObject: {fileID: 540367371}
+    - targetCorrespondingSourceObject: {fileID: -4728426434207774260, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1624717385}
+      addedObject: {fileID: 540367372}
     - targetCorrespondingSourceObject: {fileID: 2715566404302941441, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2137384602}
+    - targetCorrespondingSourceObject: {fileID: 2715566404302941441, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2137384604}
   m_SourcePrefab: {fileID: 100100000, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
 --- !u!1001 &447554555
 PrefabInstance:
@@ -6878,7 +6878,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: -4728426434207774260, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
   m_PrefabInstance: {fileID: 442367018}
   m_PrefabAsset: {fileID: 0}
---- !u!135 &540367369
+--- !u!135 &540367371
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6899,6 +6899,19 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.4
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &540367372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540367367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee6b44de8091fa043956577186608e9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CamemiHitbox
+  damage: 20
 --- !u!1 &548311761
 GameObject:
   m_ObjectHideFlags: 0
@@ -24404,27 +24417,30 @@ MonoBehaviour:
   player: {fileID: 439080074}
   PlayerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 2048
   dialogueManager: {fileID: 765349473}
   dialogoEncuentro: {fileID: 11400000, guid: 876f1f658b5d94d469afe182c553ad84, type: 2}
-  dialogoFinal: {fileID: 0}
-  pompompurin: {fileID: 0}
+  dialogoFinal: {fileID: 11400000, guid: 2258108380e264342a818f14d9576dc4, type: 2}
+  dialogoVictoria: {fileID: 11400000, guid: 9f2e3206c58941d4e9ccb5b2e137db21, type: 2}
+  pompompurin: {fileID: 439080068}
   combatManager: {fileID: 1401320890}
   hitboxesManos:
-  - {fileID: 1667308100}
-  - {fileID: 1624717385}
+  - {fileID: 2137384604}
+  - {fileID: 540367372}
   hitboxesPatas:
   - {fileID: 1335041421}
-  - {fileID: 1335041421}
+  - {fileID: 1274129371}
+  attackCooldown: 1.2
+  tiempoActivacion: 0.2
+  tiempoHitbox: 0.35
   "puedeHacerDa\xF1o": 0
   vidaMax: 100
   damageGolpe1: 12
   damageGolpe2: 22
-  tiempoActivacion: 0.2
-  tiempoDesactivacion: 0.5
   patrolRadius: 6.5
   waitTimeBetweenPoints: 3.5
   detectionRange: 5
+  combatDistance: 2
 --- !u!114 &1147968799
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28147,7 +28163,8 @@ MonoBehaviour:
   combatUI: {fileID: 1394591935}
   combatCamemiUI: {fileID: 1548614050}
   uiManager: {fileID: 1254177507}
-  combatDuration: 40
+  guardianCombatDuration: 40
+  camemiCombatDuration: 60
 --- !u!1001 &1412335921
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29647,7 +29664,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1510030660}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
   m_Name: 
@@ -29659,7 +29676,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 79
+    m_Bits: 2127
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0
@@ -32075,24 +32092,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6157802400048250726, guid: 20ce1b59383fdf84cb77e35032b0de85, type: 3}
   m_PrefabInstance: {fileID: 8004902778466612076}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1624717383 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9171100556185337, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
-  m_PrefabInstance: {fileID: 442367018}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1624717385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1624717383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee6b44de8091fa043956577186608e9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CamemiHitbox
-  damage: 10
 --- !u!1001 &1625869222
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33060,24 +33059,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5840470541670252136, guid: 61eb00bf4cf211341a49501dd4eb7841, type: 3}
   m_PrefabInstance: {fileID: 1664825939}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1667308098 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -6370085079684087283, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
-  m_PrefabInstance: {fileID: 442367018}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1667308100
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1667308098}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee6b44de8091fa043956577186608e9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CamemiHitbox
-  damage: 10
 --- !u!1001 &1672707763
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37143,6 +37124,7 @@ MonoBehaviour:
   - {fileID: 958392308}
   - {fileID: 1977274748}
   - {fileID: 2072327325}
+  yaActivado: 0
 --- !u!1 &2068943706
 GameObject:
   m_ObjectHideFlags: 0
@@ -38730,6 +38712,19 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.4
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2137384604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2137384600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee6b44de8091fa043956577186608e9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CamemiHitbox
+  damage: 20
 --- !u!1 &2143281071
 GameObject:
   m_ObjectHideFlags: 0
