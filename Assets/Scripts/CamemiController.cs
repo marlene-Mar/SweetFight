@@ -36,6 +36,7 @@ public class CamemiController : MonoBehaviour
     [Header("Vida")]
     public int vidaMax = 100;
     private int vidaActual;
+    private bool isDead = false;
 
     // Evento y propiedades públicas para que GameManager pueda suscribirse
     public System.Action<int, int> OnVidaChanged;
@@ -87,6 +88,8 @@ public class CamemiController : MonoBehaviour
 
     void Update()
     {
+        if (isDead) return;
+
         if (player == null) return;
 
         switch (currentState)
@@ -342,28 +345,47 @@ public class CamemiController : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return; // ✅ Evita llamarse dos veces
+        isDead = true;
         canReceiveDamage = false;
+        isAttacking = false;
+        currentState = CamemiState.Patrolling; // ✅ Saca del estado Combat para detener CombatBehaviour
+
         Debug.Log("Camemi ha sido derrotada");
         animator.SetLayerWeight(1, 0f);
         animator.SetBool("Combat", false);
+        animator.SetBool("Walk", false);
         animator.SetTrigger("Morir");
+
         agent.isStopped = true;
         DisableAllHitboxes();
+        StopAllCoroutines(); // ✅ Detiene cualquier ataque en curso
+
         CombatManager.Instance?.EndCombat(true);
+
+        // ✅ Notificar al jugador que salga del combate
+        playerController?.ExitCombat();
+
         StartCoroutine(FinalSequence());
     }
 
     IEnumerator FinalSequence()
     {
+        // ✅ Esperar animación de muerte
         yield return new WaitForSeconds(2.5f);
 
+        // ✅ Mostrar diálogo de victoria
         if (dialogoVictoria != null && dialogueManager != null)
             dialogueManager.StartCamemiDialogue(dialogoVictoria, this);
-        else if (dialogoFinal != null && dialogueManager != null)
-            dialogueManager.StartCamemiDialogue(dialogoFinal, this);
 
+        // ✅ Esperar que termine el diálogo
         yield return new WaitForSeconds(5f);
-        Debug.Log("Aquí iría la pantalla final");
+
+        // ✅ Mostrar créditos
+        if (UIManager.Instance != null)
+            UIManager.Instance.MostrarCreditos();
+        else
+            Debug.LogError("UIManager.Instance no encontrado!");
     }
 
     // ── SAVE DATA ─────────────────────────────────

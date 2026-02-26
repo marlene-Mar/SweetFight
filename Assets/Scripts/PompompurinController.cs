@@ -230,7 +230,12 @@ public class PompompurinController : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         foreach (var col in manoColliders)
+        {
             col.enabled = true;
+            // AÑADE ESTO PARA RESETEAR EL GOLPE CADA VEZ QUE ATACAS:
+            var handCollider = col.GetComponent<PompompurinHandCollider>();
+            if (handCollider != null) handCollider.ResetHit();
+        }
 
         yield return new WaitForSeconds(duration);
 
@@ -302,6 +307,8 @@ public class PompompurinHandCollider : MonoBehaviour
 {
     private PompompurinController playerController;
     private bool hasHit = false;
+
+    public void ResetHit() => hasHit = false;
 
     void Start()
     {

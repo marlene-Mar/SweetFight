@@ -71,6 +71,20 @@ public class DialogueManager : MonoBehaviour
         DisplayLine();
     }
 
+    public void ForceCloseDialogue()
+    {
+        if (freeLookCamera != null) freeLookCamera.SetActive(true);
+        if (dialogueCamera != null) dialogueCamera.SetActive(false);
+
+        dialoguePanel.SetActive(false);
+
+        currentGuardian = null;
+        currentCamemi = null;
+        isDialogueActive = false;
+
+        EnablePlayerControls();
+    }
+
     void DisplayLine()
     {
         if (currentIndex < currentLines.Count)

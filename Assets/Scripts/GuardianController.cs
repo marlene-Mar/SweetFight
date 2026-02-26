@@ -343,10 +343,11 @@ public class GuardianController : MonoBehaviour
         canReceiveDamage = false;
         isAttacking = false;
 
-        animator.SetBool("InCombat", false);
-        animator.SetBool("Die", true);
+        // ✅ NO desactivar InCombat aquí — puede interrumpir la transición hacia Muerte
+        // animator.SetBool("InCombat", false); ← comenta o elimina esta línea temporalmente
 
-        // Detener movimiento y parar coroutines de combate
+        animator.SetBool("Die", true); // ✅ Solo activar Die
+
         agent.isStopped = true;
         StopAllCoroutines();
         DisableWeaponCollider();
@@ -354,14 +355,25 @@ public class GuardianController : MonoBehaviour
 
         combatManager?.EndCombat(true);
 
-        // Esperar la duración de la animación de muerte antes de convertirse en aliado.
-        // Ajusta el delay al largo real del clip "Muerte" en tu Animator.
-        StartCoroutine(BecomeAllyAfterDeathAnimation(2.5f));
+        StartCoroutine(BecomeAllyAfterDeathAnimation(0f));
     }
 
     IEnumerator BecomeAllyAfterDeathAnimation(float deathAnimDuration)
     {
-        yield return new WaitForSeconds(deathAnimDuration);
+        // ✅ Esperar a que la animación de muerte realmente termine
+        // en lugar de un tiempo fijo, esperamos a que el Animator salga del estado Die
+        yield return null; // esperar un frame para que el Animator procese el trigger
+
+        // Esperar mientras sigue en el estado Die
+        yield return new WaitUntil(() =>
+        {
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            return !stateInfo.IsName("Muerte"); // ✅ usa el nombre exacto del estado en tu Animator
+        });
+
+        // ✅ Pequeño delay extra para que la transición de salida se vea bien
+        yield return new WaitForSeconds(0.3f);
+
         BecomeAlly();
     }
 
