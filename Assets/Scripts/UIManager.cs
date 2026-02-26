@@ -11,7 +11,7 @@ public class UIManager : MonoBehaviour
     private GameManager gameManager;
 
     // ==============================
-    // Men� principal
+    // Menu principal
     // ==============================
     public GameObject MenuInicial;
     public GameObject MenuPrincipal;
@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     public GameObject Audio;
     public GameObject Controles;
     public GameObject canvasMenu;
+    public GameObject timerContainer;          // contenedor del timer del guardián
 
     // ==============================
     // HUD
@@ -36,6 +37,7 @@ public class UIManager : MonoBehaviour
     public Image vida3Cheedor;
     public Image barraVidaGuardian;
     public Image barraVidaCamemi;
+    public GameObject PanelCreditos;
 
     //==============================
     //MAPA
@@ -51,9 +53,15 @@ public class UIManager : MonoBehaviour
     private int sfxLevel = 3;
 
     // ==============================
-    // TIMER
+    // TIMER GUARDIÁN
     // ==============================
-    public TextMeshProUGUI timerText;
+    public TextMeshProUGUI timerText;          // TMP del timer del guardián
+
+    // ==============================
+    // TIMER CAMEMI  ← NUEVO
+    // ==============================
+    public GameObject timerContainerCamemi;    // GameObject padre del timer de Camemi (arrastra desde el Inspector)
+    public TextMeshProUGUI timerTextCamemi;    // TMP independiente del timer de Camemi (arrastra desde el Inspector)
 
     private ConfigSource configSource;
 
@@ -87,19 +95,22 @@ public class UIManager : MonoBehaviour
         PausaPanel.SetActive(false);
         PanelMap.SetActive(false);
 
+        // Asegurarse de que los timers estén ocultos al inicio
+        if (timerContainer != null) timerContainer.SetActive(false);
+        if (timerContainerCamemi != null) timerContainerCamemi.SetActive(false);
+
         gameManager = FindFirstObjectByType<GameManager>();
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
 
         if (musicLevelText != null) musicLevelText.text = musicLevel.ToString();
         if (sfxLevelText != null) sfxLevelText.text = sfxLevel.ToString();
 
-
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
     }
 
     private void Update()
     {
-        // ENTER para pasar del men� inicial al principal
+        // ENTER para pasar del menú inicial al principal
         if (MenuInicial.activeSelf &&
             Keyboard.current != null &&
             Keyboard.current.enterKey.wasPressedThisFrame)
@@ -109,8 +120,6 @@ public class UIManager : MonoBehaviour
 
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            // Solo permitimos pausar si el HUD est� activo (estamos en el juego)
-            // o si el panel de pausa ya est� abierto para cerrar
             if (HudPanel.activeSelf || PausaPanel.activeSelf)
             {
                 if (isGamePaused)
@@ -128,7 +137,7 @@ public class UIManager : MonoBehaviour
     }
 
     // ======================
-    // M�TODO CENTRAL
+    // MÉTODO CENTRAL
     // ======================
     public void ShowMenuPanel(GameObject panelToShow)
     {
@@ -142,7 +151,7 @@ public class UIManager : MonoBehaviour
     }
 
     // ======================
-    // NAVEGACI�N PRINCIPAL
+    // NAVEGACIÓN PRINCIPAL
     // ======================
     public void GoToMenuPrincipal()
     {
@@ -164,7 +173,6 @@ public class UIManager : MonoBehaviour
 
     public void GoToAudio()
     {
-        //ShowMenuPanel(Audio);
         Audio.SetActive(true);
         Controles.SetActive(false);
         Configuracion.SetActive(false);
@@ -172,7 +180,6 @@ public class UIManager : MonoBehaviour
 
     public void GoToControles()
     {
-        //ShowMenuPanel(Controles);
         Controles.SetActive(true);
         Audio.SetActive(false);
         Configuracion.SetActive(false);
@@ -189,9 +196,9 @@ public class UIManager : MonoBehaviour
     public void Jugar()
     {
         Debug.Log("Iniciar o regresar al juego");
-        MenuPrincipal.SetActive(false); //Oculta el men�
-        MenuPrincipalBase.SetActive(false); //Oculta el men�
-        HudPanel.SetActive(true); //Muestra el HUD
+        MenuPrincipal.SetActive(false);
+        MenuPrincipalBase.SetActive(false);
+        HudPanel.SetActive(true);
         PausaPanel.SetActive(false);
 
         gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
@@ -201,12 +208,12 @@ public class UIManager : MonoBehaviour
     public void Salir()
     {
         Debug.Log("Saliendo del juego");
-        // Application.Quit();
+        Application.Quit();
     }
 
     public void RegresarAlMenu()
     {
-        Debug.Log("Regresando al men� principal");
+        Debug.Log("Regresando al menú principal");
         ShowMenuPanel(MenuPrincipal);
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
     }
@@ -214,7 +221,6 @@ public class UIManager : MonoBehaviour
     public void AbrirConfiguracionDesdeJuego()
     {
         configSource = ConfigSource.Game;
-
         Configuracion.SetActive(true);
         PausaPanel.SetActive(false);
     }
@@ -223,16 +229,13 @@ public class UIManager : MonoBehaviour
     {
         if (configSource == ConfigSource.Menu)
         {
-            // Regresa al men� principal
             ShowMenuPanel(MenuPrincipal);
         }
         else if (configSource == ConfigSource.Game)
         {
-            // Regresa al juego
             Configuracion.SetActive(false);
             PausaPanel.SetActive(true);
             HudPanel.SetActive(true);
-
             Time.timeScale = 1f;
         }
     }
@@ -249,7 +252,7 @@ public class UIManager : MonoBehaviour
         if (PausaPanel.activeSelf) return;
         PausaPanel.SetActive(true);
         gameManager.PlayMusicByState(GameManager.GameState.Pausa);
-        Time.timeScale = 0f;      
+        Time.timeScale = 0f;
         isGamePaused = true;
     }
 
@@ -265,16 +268,184 @@ public class UIManager : MonoBehaviour
     public void GuardarYSalir()
     {
         Debug.Log("Guardado");
-        PausaPanel.SetActive(false); 
+        PausaPanel.SetActive(false);
         HudPanel.SetActive(false);
         MenuPrincipal.SetActive(true);
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
+        SaveSystem.Instance.Save();
         Salir();
     }
 
     public void EdoMapa()
     {
         PanelMap.SetActive(!PanelMap.activeSelf);
+    }
+
+    public void FinDelJuego()
+    {
+        HudPanel.SetActive(false);
+        PausaPanel.SetActive(false);
+        if (timerContainer != null) timerContainer.SetActive(false);
+        if (timerContainerCamemi != null) timerContainerCamemi.SetActive(false);
+
+        // El diálogo final ya está implementado, se muestra primero
+        // Una vez termine el diálogo llama a MostrarCreditos()
+    }
+
+    public void MostrarCreditos()
+    {
+        if (PanelCreditos != null)
+        {
+            MenuPrincipalBase.SetActive(false);
+            PanelCreditos.SetActive(true);
+        }
+    }
+
+    // ✅ Botón "Volver al menú" en la pantalla de créditos
+    public void TerminarJuegoDesdeCreditos()
+    {
+        if (PanelCreditos != null)
+            PanelCreditos.SetActive(false);
+
+        // Resetear y borrar guardado
+        SaveSystem.Instance?.DeleteSave();
+        ResetearJuegoCompleto();
+
+        MenuPrincipalBase.SetActive(true);
+        ShowMenuPanel(MenuPrincipal);
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
+        Time.timeScale = 1f;
+
+        // Al terminar el diálogo final de Camemi
+        UIManager.Instance.MostrarCreditos();
+    }
+
+    // ✅ Reset completo — usado tanto por muerte del jugador como por fin del juego
+    public void ResetearJuegoCompleto()
+    {
+        // Jugador
+        PompompurinController pompom = FindFirstObjectByType<PompompurinController>();
+        VidaJugador vida = FindFirstObjectByType<VidaJugador>();
+
+        if (vida != null)
+        {
+            vida.vidaActual = vida.vidaMaxima;
+            vida.NotificarCambio();
+        }
+
+        if (pompom != null)
+        {
+            pompom.isDead = false;
+            pompom.inCombat = false;
+            pompom.isAttacking = false;
+            pompom.enabled = true;
+
+            CharacterController cc = pompom.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+            pompom.transform.position = pompom.spawnPosition;
+            pompom.transform.rotation = pompom.spawnRotation;
+            if (cc != null) cc.enabled = true;
+
+            Animator anim = pompom.GetComponent<Animator>();
+            if (anim != null)
+            {
+                anim.SetBool("Die", false);
+                anim.SetBool("Combat", false);
+                anim.SetBool("Jump", false);
+                anim.SetBool("IsRun", false);
+                anim.SetFloat("Speed", 0f);
+                anim.SetFloat("life", vida != null ? vida.vidaMaxima : 100f);
+            }
+        }
+
+        // Guardianes — volver a spawnear desde cero
+        GuardianSpawner spawner = FindFirstObjectByType<GuardianSpawner>();
+        spawner?.SpawnGuardians();
+
+        // Candies y flanes — volver a spawnear
+        SimpleObjectSpawner objectSpawner = FindFirstObjectByType<SimpleObjectSpawner>();
+        if (objectSpawner != null)
+        {
+            // Destruir los que quedaron en escena
+            foreach (var obj in GameObject.FindGameObjectsWithTag("Flan"))
+                Destroy(obj);
+            foreach (var obj in GameObject.FindGameObjectsWithTag("Candy"))
+                Destroy(obj);
+
+            objectSpawner.RespawnAll();
+        }
+
+        // Inventario
+        InventoryManager.instance?.ResetInventory();
+
+        // Contador guardianes
+        GameManager.Instance?.ResetGuardianCounter();
+    }
+
+    public void MuerteJugador()
+    {
+        HudPanel.SetActive(false);
+        PausaPanel.SetActive(false);
+        if (timerContainer != null) timerContainer.SetActive(false);
+        if (timerContainerCamemi != null) timerContainerCamemi.SetActive(false);
+
+        Time.timeScale = 1f;
+        gameManager.PlayMusicByState(GameManager.GameState.Menu);
+
+        ResetearJuegoCompleto();
+
+        MenuPrincipalBase.SetActive(true);
+        ShowMenuPanel(MenuPrincipal);
+    }
+
+    // ========== TIMER GUARDIÁN ==========
+
+    public void ShowTimer()
+    {
+        if (timerContainer != null) timerContainer.SetActive(true);
+    }
+
+    public void HideTimer()
+    {
+        if (timerContainer != null) timerContainer.SetActive(false);
+    }
+
+    public void UpdateTimer(float time)
+    {
+        if (timerText == null) return;
+        int minutes = Mathf.FloorToInt(time / 40);
+        int seconds = Mathf.FloorToInt(time % 40);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    // ========== TIMER CAMEMI (NUEVO) ==========
+
+    public void ShowTimerCamemi()
+    {
+        if (timerContainerCamemi != null) timerContainerCamemi.SetActive(true);
+    }
+
+    public void HideTimerCamemi()
+    {
+        if (timerContainerCamemi != null) timerContainerCamemi.SetActive(false);
+    }
+
+    public void UpdateTimerCamemi(float time)
+    {
+        if (timerTextCamemi == null) return;     // usa su propio TMP, no timerText
+        int minutes = Mathf.FloorToInt(time / 60);
+        int seconds = Mathf.FloorToInt(time % 60);
+        timerTextCamemi.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    // ========== TIMER ALIADO ==========
+
+    public void UpdateTimerAliado(float time)
+    {
+        if (timerText == null) return;
+        int minutes = Mathf.FloorToInt(time / 60);
+        int seconds = Mathf.FloorToInt(time % 60);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
     // =========AUDIO=========
@@ -305,16 +476,5 @@ public class UIManager : MonoBehaviour
     private float LinearToLog(float value)
     {
         return Mathf.Log10(value) * 20;
-    }
-
-    // ========== TIMER PELEA GUARDIAN============
-
-    public void UpdateTimer(float time)
-    {
-        if (timerText == null) return;
-
-        int minutes = Mathf.FloorToInt(time / 40);
-        int seconds = Mathf.FloorToInt(time % 40);
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 }

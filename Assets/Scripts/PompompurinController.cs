@@ -6,7 +6,7 @@ public class PompompurinController : MonoBehaviour
     private CharacterController player;
     private Animator pompompurinAnimator;
     private VidaJugador vidaJugador;
-
+  
     private float speed = 3.5f;
     private float gravity = -9.8f;
     private float jumpForce = 4.5f;
@@ -14,6 +14,8 @@ public class PompompurinController : MonoBehaviour
     public float smoothTime = 0.3f;
     private Vector3 smoothVelocity;
 
+    public Vector3 spawnPosition;
+    public Quaternion spawnRotation;
     private Vector3 moveDirection;
     private Vector3 verticalVelocity;
 
@@ -29,6 +31,7 @@ public class PompompurinController : MonoBehaviour
 
     public bool inCombat = false;
     public bool isAttacking = false;
+    public bool isDead = false;
 
     private int currentDamage;
 
@@ -40,6 +43,9 @@ public class PompompurinController : MonoBehaviour
 
     void Start()
     {
+        spawnPosition = transform.position;
+        spawnRotation = transform.rotation;
+
         pompompurinAnimator = GetComponent<Animator>();
         player = GetComponent<CharacterController>();
         combatManager = FindObjectOfType<CombatManager>();
@@ -58,25 +64,29 @@ public class PompompurinController : MonoBehaviour
 
     void Update()
     {
-        DetectCombat();
-        HandleJump();
+        if (isDead) return;
 
-        if (inCombat && !isInDialogue)
-            HandleAttackInput();
+        DetectCombat(); // Verificar si entramos en combate por proximidad
+        HandleJump(); // Permitir saltar incluso en combate, pero no moverse
 
+        // Solo manejar ataques si estamos en combate y no en diálogo
+        if (inCombat && !isInDialogue) HandleAttackInput();
+
+        // Si estamos en diálogo o atacando, no permitimos movimiento
         moveDirection = Vector3.zero;
+        if (!isInDialogue && !isAttacking) HandleMovement();
 
-        if (!isInDialogue && !isAttacking)
-            HandleMovement();
-
-        ApplyGravity();
-        UpdateAnimator();
+        ApplyGravity(); // Aplicar gravedad siempre para permitir saltar y caer correctamente
+        UpdateAnimator(); // Actualizar animaciones después de todo el movimiento y acciones
     }
 
     void HandleMovement()
     {
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal");
+
+        bool isRunning = Input.GetKey(KeyCode.Q) && (Mathf.Abs(v) > 0.1f || Mathf.Abs(h) > 0.1f);
+        float currentSpeed = isRunning ? speed * 2f : speed;
 
         Vector3 cameraView = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
         Vector3 cameraRight = Camera.main.transform.right;
@@ -86,7 +96,9 @@ public class PompompurinController : MonoBehaviour
         if (moveDirection.magnitude > 1f)
             moveDirection.Normalize();
 
-        Vector3 finalMove = moveDirection * speed;
+        //Vector3 finalMove = moveDirection * speed;
+        //finalMove.y = verticalVelocity.y;
+        Vector3 finalMove = moveDirection * currentSpeed;
         finalMove.y = verticalVelocity.y;
 
         player.Move(finalMove * Time.deltaTime);
@@ -101,6 +113,28 @@ public class PompompurinController : MonoBehaviour
             );
             transform.forward = forward;
         }
+
+        pompompurinAnimator.SetBool("IsRun", isRunning);
+    }
+
+    void UpdateAnimator()
+    {
+        if (pompompurinAnimator.GetBool("Die")) return;
+
+        pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
+
+        if (isAttacking || isInDialogue)
+        {
+            pompompurinAnimator.SetFloat("Speed", 0f);
+            pompompurinAnimator.SetBool("IsRun", false);
+        }
+        else
+        {
+            pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
+        }
+
+        if (vidaJugador != null)
+            pompompurinAnimator.SetFloat("life", vidaJugador.vidaActual);
     }
 
     void HandleJump()
@@ -167,6 +201,7 @@ public class PompompurinController : MonoBehaviour
     void HandleAttackInput()
     {
         if (isAttacking) return;
+        Debug.Log($"HandleAttackInput ejecutándose — inCombat: {inCombat}");
 
         if (Time.time > lastHitTime + comboResetTime)
             golpe1Count = 0;
@@ -194,41 +229,26 @@ public class PompompurinController : MonoBehaviour
 
         yield return new WaitForSeconds(delay);
 
-        // Activar colliders de manos
         foreach (var col in manoColliders)
             col.enabled = true;
 
         yield return new WaitForSeconds(duration);
 
-        // Desactivar colliders
         foreach (var col in manoColliders)
             col.enabled = false;
 
-        // Liberar isAttacking un poco antes del final de la animación
-        // para que combos rápidos no pierdan inputs
         yield return new WaitForSeconds(0.05f);
         isAttacking = false;
-    }
-
-    void UpdateAnimator()
-    {
-        if (pompompurinAnimator.GetBool("Die")) return;
-
-        pompompurinAnimator.SetBool("IsGrounded", player.isGrounded);
-
-        if (isAttacking || isInDialogue)
-            pompompurinAnimator.SetFloat("Speed", 0f);
-        else
-            pompompurinAnimator.SetFloat("Speed", moveDirection.magnitude);
-
-        if (vidaJugador != null)
-            pompompurinAnimator.SetFloat("life", vidaJugador.vidaActual);
     }
 
     public int GetCurrentDamage() => currentDamage;
 
     void Die()
     {
+        if (isDead) return; 
+        isDead = true;
+
+        //Detener todo movimiento
         moveDirection = Vector3.zero;
         verticalVelocity = Vector3.zero;
         isAttacking = false;
@@ -238,8 +258,12 @@ public class PompompurinController : MonoBehaviour
             col.enabled = false;
 
         pompompurinAnimator.SetFloat("Speed", 0f);
+        pompompurinAnimator.SetBool("IsRun", false);
         pompompurinAnimator.SetBool("Combat", false);
         pompompurinAnimator.SetBool("Jump", false);
+
+        //Forzar vida a 0 ANTES de activar Die para que la transición sea consistente
+        pompompurinAnimator.SetFloat("life", 0f);
         pompompurinAnimator.SetBool("Die", true);
 
         Debug.Log("Pompompurin ha muerto!");
@@ -247,13 +271,18 @@ public class PompompurinController : MonoBehaviour
         if (combatManager != null)
             combatManager.EndCombat(false);
 
-        StartCoroutine(DisableAfterDeath());
+        StartCoroutine(MuerteYRegresarAlMenu());
     }
 
-    IEnumerator DisableAfterDeath()
+    IEnumerator MuerteYRegresarAlMenu()
     {
-        yield return new WaitForSeconds(0.1f);
-        enabled = false;
+        float duracionAnimacion = 2.5f;
+        yield return new WaitForSeconds(duracionAnimacion);
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.MuerteJugador();
+        else
+            Debug.LogError("UIManager.Instance no encontrado!");
     }
 
     public void NotifyHitLanded()
@@ -267,7 +296,7 @@ public class PompompurinController : MonoBehaviour
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  PompompurinHandCollider — detecta colisiones de las manos con enemigos
+//  PompompurinHandCollider
 // ─────────────────────────────────────────────────────────────────────────────
 public class PompompurinHandCollider : MonoBehaviour
 {
@@ -283,11 +312,9 @@ public class PompompurinHandCollider : MonoBehaviour
     }
 
     void OnEnable() => hasHit = false;
-    void OnDisable() => hasHit = false; // Reset al desactivar por combos rápidos
+    void OnDisable() => hasHit = false;
 
     void OnTriggerEnter(Collider other) => ProcessHit(other);
-
-    // Respaldo: si el enemigo ya está dentro del collider al activarse
     void OnTriggerStay(Collider other) => ProcessHit(other);
 
     void ProcessHit(Collider other)
@@ -313,8 +340,16 @@ public class PompompurinHandCollider : MonoBehaviour
         if (guardian != null && guardian.CanReceiveDamage())
         {
             hasHit = true;
-            playerController.NotifyHitLanded();
-            Debug.Log("[Mano] Golpe en Guardian.");
+            int damage = playerController.GetCurrentDamage();
+
+            // BUG 3 FIX: aplicar daño directo al guardián físicamente detectado,
+            // independientemente de qué guardián tenga CombatManager como currentEnemy.
+            guardian.TakeDamage(damage);
+
+            // Registrar solo estadísticas en CombatManager (sin volver a aplicar daño)
+            CombatManager.Instance?.OnPlayerHitGuardian(damage);
+
+            Debug.Log($"[Mano] Golpe en Guardian — daño: {damage}");
         }
     }
 }

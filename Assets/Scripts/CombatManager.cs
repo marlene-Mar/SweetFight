@@ -50,6 +50,7 @@ public class CombatManager : MonoBehaviour
 
     public void StartGuardianCombat(GuardianController guardian, PompompurinController pompompurin)
     {
+        Debug.Log($"StartGuardianCombat — timerRunning: {timerRunning}");  // ← ¿es true?
         if (timerRunning) { Debug.LogWarning("CombatManager: Ya hay un combate activo."); return; }
 
         isCamemiCombat = false;
@@ -67,6 +68,7 @@ public class CombatManager : MonoBehaviour
         player.inCombat = true;
         Debug.Log("¡Combate contra Guardián iniciado!");
         StartCoroutine(CombatTimerRoutine(guardianCombatDuration));
+        UIManager.Instance?.ShowTimer();
     }
 
     public void StartCamemiCombat(CamemiController camemi, PompompurinController pompompurin)
@@ -85,6 +87,7 @@ public class CombatManager : MonoBehaviour
         player.inCombat = true;
         Debug.Log("¡Combate contra Camemi iniciado!");
         StartCoroutine(CombatTimerRoutine(camemiCombatDuration));
+        UIManager.Instance?.ShowTimerCamemi();
     }
 
     void ResetStats()
@@ -94,7 +97,10 @@ public class CombatManager : MonoBehaviour
 
     // ── Registro de golpes ─────────────────────────
 
-    /// <summary>Llamado cuando Pompompurin golpea al enemigo.</summary>
+    /// <summary>
+    /// Llamado cuando Pompompurin golpea a Camemi.
+    /// Aplica daño Y registra estadísticas.
+    /// </summary>
     public void OnPlayerHit(int damage)
     {
         if (!timerRunning) return;
@@ -102,12 +108,27 @@ public class CombatManager : MonoBehaviour
         playerHitsLanded++;
         totalDamageDealt += damage;
 
+        // Solo aplica daño a Camemi.
+        // El guardián recibe TakeDamage directo desde PompompurinHandCollider
+        // para que funcione independientemente de qué guardián esté en currentEnemy.
         if (isCamemiCombat)
             currentCamemi?.TakeDamage(damage);
-        else
-            currentEnemy?.TakeDamage(damage);
 
         Debug.Log($"[Jugador] golpeó → daño: {damage} | total infligido: {totalDamageDealt}");
+    }
+
+    /// <summary>
+    /// Solo registra estadísticas del golpe al guardián.
+    /// El daño ya fue aplicado directamente en PompompurinHandCollider.
+    /// </summary>
+    public void OnPlayerHitGuardian(int damage)
+    {
+        if (!timerRunning) return;
+
+        playerHitsLanded++;
+        totalDamageDealt += damage;
+
+        Debug.Log($"[Jugador→Guardián] daño: {damage} | total infligido: {totalDamageDealt}");
     }
 
     /// <summary>Llamado cuando el Guardián golpea al jugador.</summary>
@@ -125,7 +146,6 @@ public class CombatManager : MonoBehaviour
     /// <summary>Llamado cuando Camemi golpea al jugador.</summary>
     public void OnCamemiHit(int damage)
     {
-        // CORRECCIÓN CLAVE: usar timerRunning en lugar de player.inCombat
         if (!timerRunning) return;
 
         enemyHitsLanded++;
@@ -140,6 +160,7 @@ public class CombatManager : MonoBehaviour
     public void EndCombat(bool playerWon)
     {
         if (!timerRunning) return;
+        SaveCombatStats();
 
         StopAllCoroutines();
         timerRunning = false;
@@ -151,19 +172,20 @@ public class CombatManager : MonoBehaviour
 
         if (isCamemiCombat)
         {
+            UIManager.Instance?.HideTimerCamemi();
+
             if (playerWon)
-            {
                 Debug.Log("¡Victoria contra Camemi!");
-            }
             else
             {
-                // Tiempo agotado: Camemi muestra diálogo y vuelve a patrullar
                 Debug.Log("Tiempo agotado en combate Camemi.");
                 currentCamemi?.OnCombatTimeOut();
             }
         }
         else
         {
+            UIManager.Instance?.HideTimer();
+
             if (playerWon)
                 Debug.Log("¡Victoria contra Guardián!");
             else
@@ -175,17 +197,26 @@ public class CombatManager : MonoBehaviour
 
     private IEnumerator CombatTimerRoutine(float duration)
     {
-        timerRunning = true;   // Se activa ANTES del primer yield
+        timerRunning = true;
         combatTimer = duration;
 
         while (combatTimer > 0f)
         {
             combatTimer -= Time.deltaTime;
-            UIManager.Instance?.UpdateTimer(combatTimer);
+
+            if (isCamemiCombat)
+                UIManager.Instance?.UpdateTimerCamemi(combatTimer);
+            else
+                UIManager.Instance?.UpdateTimer(combatTimer);
+
             yield return null;
         }
 
-        UIManager.Instance?.UpdateTimer(0f);
+        if (isCamemiCombat)
+            UIManager.Instance?.UpdateTimerCamemi(0f);
+        else
+            UIManager.Instance?.UpdateTimer(0f);
+
         Debug.Log("Tiempo de combate agotado.");
         EndCombat(false);
     }
@@ -196,4 +227,16 @@ public class CombatManager : MonoBehaviour
     public int GetEnemyHits() => enemyHitsLanded;
     public int GetTotalDamageDealt() => totalDamageDealt;
     public int GetTotalDamageTaken() => totalDamageTaken;
+
+    [Header("Save Data")]
+    public Data gameData;
+
+    public void SaveCombatStats()
+    {
+        gameData.lastCombatPlayerHits = playerHitsLanded;
+        gameData.lastCombatEnemyHits = enemyHitsLanded;
+        gameData.lastCombatDamageDealt = totalDamageDealt;
+        gameData.lastCombatDamageTaken = totalDamageTaken;
+        gameData.lastCombatTimeRemaining = combatTimer;
+    }
 }

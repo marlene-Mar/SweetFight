@@ -46,7 +46,7 @@ public class VidaJugador : MonoBehaviour
         NotificarCambio();
     }
 
-    void NotificarCambio()
+    public void NotificarCambio()
     {
         OnVidaChanged?.Invoke(vidaActual, vidaMaxima);
     }

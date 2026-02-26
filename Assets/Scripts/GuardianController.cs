@@ -69,6 +69,9 @@ public class GuardianController : MonoBehaviour
     public static System.Action OnGuardianBecameAlly;
     public static System.Action OnGuardianLeftAlly;
 
+    public static System.Action<float, float> OnAllyTimerUpdated;  // (tiempoRestante, duracionTotal)
+    public static System.Action OnAllyTimerEnded;
+
     // ── Estado interno ────────────────────────────────────────────
     private enum GuardianState
     {
@@ -212,7 +215,10 @@ public class GuardianController : MonoBehaviour
     {
         if (!canInteract) return;
         if (currentState != GuardianState.Patrolling) return;
-        if (combatManager != null && combatManager.IsInCombat) return; 
+        if (combatManager != null && combatManager.IsInCombat) return;
+
+        //No iniciar interacción si el jugador ya tiene un guardián aliado
+        if (GameManager.Instance != null && GameManager.Instance.GetGuardianAllyCount() > 0) return;
 
         float distance = Vector3.Distance(transform.position, player.position);
         if (distance <= detectionDistance)
@@ -263,12 +269,11 @@ public class GuardianController : MonoBehaviour
     // ═════════════════════════════════════════════════════════════
     public void StartCombat()
     {
+        Debug.Log($"{name} StartCombat() — canReceiveDamage será true");
         animator.SetBool("InCombat", true);
-        canReceiveDamage = true;
+        canReceiveDamage = true;  // ← ¿llega aquí?
         attackTimer = 0f;
         isAttacking = false;
-
-        // Primer ataque con pequeño delay para que la animación arranque
         Invoke(nameof(ExecuteAttack), 0.5f);
     }
 
@@ -381,9 +386,10 @@ public class GuardianController : MonoBehaviour
 
         currentHealth = maxHealth;
         OnVidaChanged?.Invoke(currentHealth, maxHealth);
-
-        // Cambiar tag para que otros guardianes no nos detecten como enemigos [FIX 9]
+     
+        // Cambiar tag para que otros guardianes no nos detecten como enemigos
         gameObject.tag = "GuardianAlly";
+        gameObject.layer = LayerMask.NameToLayer("GuardianAlly");
 
         if (weaponObject != null) weaponObject.SetActive(false);
 
@@ -395,10 +401,10 @@ public class GuardianController : MonoBehaviour
         StartCoroutine(AllyWarningRoutine());
     }
 
-    // FIX [9]: Al buscar enemigos se excluyen objetos con tag "Guardian" o "GuardianAlly"
+    // Al buscar enemigos se excluyen objetos con tag "Guardian" o "GuardianAlly"
     void AllyBehaviour()
     {
-        allyTimer += Time.deltaTime;
+        TickAllyTimer();
         if (allyTimer >= allyDuration) { EndAllyMode(); return; }
 
         // Buscar enemigos cercanos, ignorando guardianes
@@ -429,7 +435,7 @@ public class GuardianController : MonoBehaviour
 
     void DefendPlayerBehaviour()
     {
-        allyTimer += Time.deltaTime;
+        TickAllyTimer();
         if (allyTimer >= allyDuration) { EndAllyMode(); return; }
 
         // Objetivo destruido o salió de rango → volver a seguir al jugador
@@ -475,6 +481,13 @@ public class GuardianController : MonoBehaviour
         }
     }
 
+    void TickAllyTimer()
+    {
+        allyTimer += Time.deltaTime;
+        float remaining = Mathf.Max(0f, allyDuration - allyTimer);
+        OnAllyTimerUpdated?.Invoke(remaining, allyDuration);
+    }
+
     void FollowPlayer()
     {
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -482,8 +495,8 @@ public class GuardianController : MonoBehaviour
         if (distanceToPlayer > followDistance)
         {
             agent.isStopped = false;
-            // Seguir a un punto detrás del jugador, no encima
-            Vector3 followTarget = player.position - player.forward * (followDistance * 0.8f);
+            // Posicionar un poco detrás del jugador para no obstruir su camino
+            Vector3 followTarget = player.position - player.forward * (followDistance * 2f);
             agent.SetDestination(followTarget);
             SetWalk(true);
         }
@@ -510,6 +523,7 @@ public class GuardianController : MonoBehaviour
 
         // Restaurar tag original para que otros guardianes puedan interactuar con el jugador
         gameObject.tag = "Guardian";
+        gameObject.layer = LayerMask.NameToLayer("Guardian");
 
         Debug.Log($"{name} deja de ser aliado y vuelve a patrullar.");
 
@@ -518,6 +532,7 @@ public class GuardianController : MonoBehaviour
 
         StartCoroutine(ResetInteraction());
         MoveToRandomPoint();
+        OnAllyTimerEnded?.Invoke();
     }
 
     // Avisa 10 s antes de que expire el modo aliado
@@ -532,10 +547,10 @@ public class GuardianController : MonoBehaviour
     // ═════════════════════════════════════════════════════════════
     public void EndCombat()
     {
-        CancelInvoke(nameof(ExecuteAttack)); // ← cancela ataques pendientes
-        StopAllCoroutines();                 // ← cancela AttackCooldown y ActivateWeaponCollider
+        CancelInvoke(nameof(ExecuteAttack));
+        StopAllCoroutines();
 
-        currentState = GuardianState.Patrolling; // ← primero cambiar estado
+        currentState = GuardianState.Patrolling; 
         isAttacking = false;
         attackTimer = 0f;
         canReceiveDamage = false;
@@ -544,7 +559,7 @@ public class GuardianController : MonoBehaviour
         animator.SetBool("Walk", false);
 
         agent.isStopped = false;
-        agent.ResetPath(); // ← limpia cualquier destino anterior
+        agent.ResetPath();
         currentHealth = maxHealth;
         OnVidaChanged?.Invoke(currentHealth, maxHealth);
 
@@ -613,6 +628,43 @@ public class GuardianController : MonoBehaviour
     public int GetCurrentHealth() => currentHealth;
     public bool IsAlly() => isAlly;
     public bool CanReceiveDamage() => canReceiveDamage;
+
+    // ═════════════════════════════════════════════════════════════
+    //  SAVE / LOAD
+    // ═════════════════════════════════════════════════════════════
+    public Data.GuardianSaveData GetSaveData()
+    {
+        return new Data.GuardianSaveData
+        {
+            posX = transform.position.x,
+            posY = transform.position.y,
+            posZ = transform.position.z,
+            isAlly = isAlly,
+            allyTimeRemaining = isAlly ? Mathf.Max(0f, allyDuration - allyTimer) : 0f,
+            onCooldown = !canInteract
+        };
+    }
+
+    public void LoadSaveData(Data.GuardianSaveData data)
+    {
+        // Reposicionar usando NavMesh para no caer fuera del mapa
+        NavMeshHit hit;
+        Vector3 savedPos = new Vector3(data.posX, data.posY, data.posZ);
+        if (NavMesh.SamplePosition(savedPos, out hit, 5f, NavMesh.AllAreas))
+            agent.Warp(hit.position);
+
+        if (data.isAlly)
+        {
+            BecomeAlly();
+            // Restaurar el tiempo restante
+            allyTimer = allyDuration - data.allyTimeRemaining;
+        }
+        else if (data.onCooldown)
+        {
+            canInteract = false;
+            StartCoroutine(ResetInteraction());
+        }
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -661,6 +713,7 @@ public class GuardianWeaponCollider : MonoBehaviour
             // Modo aliado: golpear solo a enemigos (nunca a otros guardianes) [FIX 9]
             if (other.CompareTag("Enemy") &&
                 !other.CompareTag("Guardian") &&
+                !other.CompareTag("Camemi") &&
                 !other.CompareTag("GuardianAlly"))
             {
                 Debug.Log($"Guardián aliado golpeó a {other.name}.");

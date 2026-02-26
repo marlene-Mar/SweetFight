@@ -26,6 +26,9 @@ public class GameManager : MonoBehaviour
     public bool debugCounterLogs = true;
     private int guardianAllyCount = 0;
 
+    [Header("Ally Timer HUD")]
+    public GameObject allyTimerContainer;
+    public TextMeshProUGUI allyTimerText;            
     // ══════════════════════════════════════════════════════════
     //  CAMEMI
     // ══════════════════════════════════════════════════════════
@@ -65,6 +68,8 @@ public class GameManager : MonoBehaviour
         GuardianController.OnGuardianBecameAlly += IncrementGuardianCounter;
         GuardianController.OnGuardianLeftAlly += DecrementGuardianCounter;
         SceneManager.sceneLoaded += OnSceneLoaded; // Re-buscar refs al cambiar escena
+        GuardianController.OnAllyTimerUpdated += UpdateAllyTimerUI;
+        GuardianController.OnAllyTimerEnded += HideAllyTimerUI;
     }
 
     void OnDisable()
@@ -72,6 +77,8 @@ public class GameManager : MonoBehaviour
         GuardianController.OnGuardianBecameAlly -= IncrementGuardianCounter;
         GuardianController.OnGuardianLeftAlly -= DecrementGuardianCounter;
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        GuardianController.OnAllyTimerUpdated -= UpdateAllyTimerUI;
+        GuardianController.OnAllyTimerEnded -= HideAllyTimerUI;
     }
 
     void Start()
@@ -80,6 +87,7 @@ public class GameManager : MonoBehaviour
         ConnectReferences();
         UpdateCandyBar();
         if (maxMessageText != null) maxMessageText.gameObject.SetActive(false);
+        if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
         UpdateGuardianAllyCounterUI();
     }
 
@@ -87,6 +95,23 @@ public class GameManager : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ConnectReferences();
+    }
+
+    // Actualiza el UI del timer de aliado con el tiempo restante y total
+    void UpdateAllyTimerUI(float remaining, float total)
+    {
+        if (allyTimerContainer != null) allyTimerContainer.SetActive(true);
+        if (allyTimerText != null)
+        {
+            int minutes = Mathf.FloorToInt(remaining / 60f);
+            int seconds = Mathf.FloorToInt(remaining % 60f);
+            allyTimerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+    }
+
+    void HideAllyTimerUI()  // ← solo una versión
+    {
+        if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
     }
 
     /// <summary>Busca y suscribe todas las referencias de vida en la escena activa.</summary>
@@ -152,7 +177,11 @@ public class GameManager : MonoBehaviour
     void UpdateHealthBarCamemi(int vidaActual, int vidaMaxima)
     {
         if (healthCamemiBar != null)
+        {
+            // Activar el contenedor padre si está desactivado
+            healthCamemiBar.transform.parent.gameObject.SetActive(true);
             healthCamemiBar.fillAmount = (float)vidaActual / vidaMaxima;
+        }
     }
 
     public void TakeDamage(int damage)
@@ -256,4 +285,102 @@ public class GameManager : MonoBehaviour
     public void Musicvolume(float volume) => audioMixer.SetFloat("MusicVolume", volume);
     public void SFXVolume(float volume) => audioMixer.SetFloat("SFXVolume", volume);
     public void MasterVolume(float volume) => audioMixer.SetFloat("GeneralVolume", volume);
+
+
+    [Header("Save Data")]
+    public Data gameData;
+
+    public void SaveToData()
+    {
+        // ── Player ────────────────────────────────────────────────
+        if (vidaJugador != null)
+        {
+            gameData.playerHealth = vidaJugador.vidaActual;
+            gameData.playerMaxHealth = vidaJugador.vidaMaxima;
+
+            // ✅ Posición del jugador, no del GameManager
+            PompompurinController pompom = vidaJugador.GetComponent<PompompurinController>();
+            if (pompom != null)
+            {
+                gameData.playerPositionX = pompom.transform.position.x;
+                gameData.playerPositionY = pompom.transform.position.y;
+                gameData.playerPositionZ = pompom.transform.position.z;
+            }
+        }
+
+        // ── Candies ───────────────────────────────────────────────
+        gameData.currentCandies = currentCandies;
+        gameData.guardianAllyCount = guardianAllyCount;
+
+        // ── Guardianes ────────────────────────────────────────────
+        GuardianController[] guardianes = FindObjectsByType<GuardianController>(FindObjectsSortMode.None);
+        for (int i = 0; i < Mathf.Min(guardianes.Length, gameData.guardians.Length); i++)
+            gameData.guardians[i] = guardianes[i].GetSaveData();
+
+        // ── Audio ─────────────────────────────────────────────────
+        audioMixer.GetFloat("GeneralVolume", out gameData.masterVolume);
+        audioMixer.GetFloat("MusicVolume", out gameData.musicVolume);
+        audioMixer.GetFloat("SFXVolume", out gameData.sfxVolume);
+
+        // ── Escena ────────────────────────────────────────────────
+        gameData.lastScene = SceneManager.GetActiveScene().name;
+
+        // ── Inventario ────────────────────────────────────────────
+        InventoryManager.instance?.SaveToData();
+
+        Debug.Log("[GameManager] Partida guardada.");
+    }
+
+    public void LoadFromData()
+    {
+        // ── Player vida ───────────────────────────────────────────
+        if (vidaJugador != null)
+        {
+            vidaJugador.vidaMaxima = gameData.playerMaxHealth;
+            vidaJugador.vidaActual = gameData.playerHealth;
+            vidaJugador.NotificarCambio();
+
+            // ✅ Restaurar posición del jugador
+            PompompurinController pompom = vidaJugador.GetComponent<PompompurinController>();
+            if (pompom != null)
+            {
+                CharacterController cc = pompom.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+
+                pompom.transform.position = new Vector3(
+                    gameData.playerPositionX,
+                    gameData.playerPositionY,
+                    gameData.playerPositionZ
+                );
+
+                if (cc != null) cc.enabled = true;
+            }
+        }
+
+        // ── Candies ───────────────────────────────────────────────
+        currentCandies = gameData.currentCandies;
+        UpdateCandyBar();
+
+        // ── Contador guardianes ───────────────────────────────────
+        guardianAllyCount = gameData.guardianAllyCount;
+        UpdateGuardianAllyCounterUI();
+
+        // ── Estado guardianes ─────────────────────────────────────
+        GuardianController[] guardianes = FindObjectsByType<GuardianController>(FindObjectsSortMode.None);
+        for (int i = 0; i < Mathf.Min(guardianes.Length, gameData.guardians.Length); i++)
+        {
+            if (gameData.guardians[i] != null)
+                guardianes[i].LoadSaveData(gameData.guardians[i]);
+        }
+
+        // ── Audio ─────────────────────────────────────────────────
+        Musicvolume(gameData.musicVolume);
+        SFXVolume(gameData.sfxVolume);
+        MasterVolume(gameData.masterVolume);
+
+        // ── Inventario ────────────────────────────────────────────
+        InventoryManager.instance?.LoadFromData();
+
+        Debug.Log("[GameManager] Partida cargada.");
+    }
 }

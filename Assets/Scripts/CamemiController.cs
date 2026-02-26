@@ -73,7 +73,7 @@ public class CamemiController : MonoBehaviour
         }
 
         vidaActual = vidaMax;
-        OnVidaChanged?.Invoke(vidaActual, vidaMax); // Inicializa la barra al 100%
+        OnVidaChanged?.Invoke(vidaActual, vidaMax);
         currentState = CamemiState.Patrolling;
 
         // Inyectar daño en hitboxes para que nunca queden en 0
@@ -155,7 +155,7 @@ public class CamemiController : MonoBehaviour
     {
         agent.isStopped = true;
         animator.SetBool("Walk", false);
-        animator.SetBool("Combat", false); // Asegura que CombatLayer vuelve a Empty
+        animator.SetBool("Combat", false);
         animator.SetBool("InDialogue", true);
         currentState = CamemiState.Talking;
 
@@ -178,11 +178,14 @@ public class CamemiController : MonoBehaviour
     void StartCombat()
     {
         currentState = CamemiState.Combat;
-        animator.SetLayerWeight(1, 1f); // ACTIVA el CombatLayer
+        animator.SetLayerWeight(1, 1f);
         animator.SetBool("Combat", true);
         canReceiveDamage = true;
-        attackTimer = attackCooldown; // Primer ataque sale casi inmediato
+        attackTimer = attackCooldown;
         isAttacking = false;
+
+        // FIX: forzar refresco de barra de vida de Camemi al iniciar combate
+        OnVidaChanged?.Invoke(vidaActual, vidaMax);
     }
 
     void CombatBehaviour()
@@ -233,10 +236,8 @@ public class CamemiController : MonoBehaviour
         StartCoroutine(AttackCooldownRoutine());
     }
 
-    // Coroutine independiente del tiempo de hitbox para no bloquear demasiado
     IEnumerator AttackCooldownRoutine()
     {
-        // Esperamos el tiempo de animación antes de liberar el siguiente ataque
         yield return new WaitForSeconds(attackCooldown * 0.85f);
         isAttacking = false;
     }
@@ -248,16 +249,12 @@ public class CamemiController : MonoBehaviour
         yield return new WaitForSeconds(tiempoActivacion);
 
         foreach (var h in grupo)
-        {
             if (h != null) h.gameObject.SetActive(true);
-        }
 
         yield return new WaitForSeconds(tiempoHitbox);
 
         foreach (var h in grupo)
-        {
             if (h != null) h.gameObject.SetActive(false);
-        }
     }
 
     void DisableAllHitboxes()
@@ -274,7 +271,7 @@ public class CamemiController : MonoBehaviour
     {
         if (!canReceiveDamage) return;
 
-        // Bloqueo solo si tiene más del 30% de vida — evita que se congele al final
+        // Bloqueo solo si tiene más del 30% de vida
         float porcentajeVida = (float)vidaActual / vidaMax;
         if (porcentajeVida > 0.3f && Random.value > 0.7f)
         {
@@ -309,7 +306,7 @@ public class CamemiController : MonoBehaviour
     public void ReturnToPatrol()
     {
         currentState = CamemiState.Patrolling;
-        animator.SetBool("Combat", false); // CombatLayer regresa a Empty
+        animator.SetBool("Combat", false);
         agent.isStopped = false;
         agent.ResetPath();
         MoveToRandomPoint();
@@ -318,7 +315,6 @@ public class CamemiController : MonoBehaviour
 
     // ── TIMEOUT DE COMBATE ───────────────────────
 
-    // Llamado por CombatManager cuando se acaba el tiempo
     public void OnCombatTimeOut()
     {
         currentState = CamemiState.Patrolling;
@@ -326,7 +322,6 @@ public class CamemiController : MonoBehaviour
         animator.SetLayerWeight(1, 0f);
         agent.isStopped = false;
 
-        // Mostrar diálogo si existe y luego volver a patrullar
         if (dialogoFinal != null && dialogueManager != null)
         {
             animator.SetBool("InDialogue", true);
@@ -338,7 +333,6 @@ public class CamemiController : MonoBehaviour
 
     IEnumerator ResumePatrolAfterTimeout()
     {
-        // Esperar a que termine el diálogo antes de reanudar patrulla
         yield return new WaitForSeconds(4f);
         animator.SetBool("InDialogue", false);
         ReturnToPatrol();
@@ -350,11 +344,9 @@ public class CamemiController : MonoBehaviour
     {
         canReceiveDamage = false;
         Debug.Log("Camemi ha sido derrotada");
-        // NO apagamos el layer aquí — la animación Morir vive en Base Layer
-        // Solo desactivamos el CombatLayer para que Base Layer tome control
         animator.SetLayerWeight(1, 0f);
         animator.SetBool("Combat", false);
-        animator.SetTrigger("Morir"); // Este trigger debe estar en Base Layer
+        animator.SetTrigger("Morir");
         agent.isStopped = true;
         DisableAllHitboxes();
         CombatManager.Instance?.EndCombat(true);
@@ -365,7 +357,6 @@ public class CamemiController : MonoBehaviour
     {
         yield return new WaitForSeconds(2.5f);
 
-        // Diálogo de victoria del jugador (Camemi derrotada)
         if (dialogoVictoria != null && dialogueManager != null)
             dialogueManager.StartCamemiDialogue(dialogoVictoria, this);
         else if (dialogoFinal != null && dialogueManager != null)
@@ -373,5 +364,27 @@ public class CamemiController : MonoBehaviour
 
         yield return new WaitForSeconds(5f);
         Debug.Log("Aquí iría la pantalla final");
+    }
+
+    // ── SAVE DATA ─────────────────────────────────
+
+    [Header("Save Data")]
+    public Data gameData;
+
+    public void SaveToData()
+    {
+        gameData.camemiHealth = vidaActual;
+        gameData.camemiDefeated = vidaActual <= 0;
+    }
+
+    public void LoadFromData()
+    {
+        if (gameData.camemiDefeated)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+        vidaActual = gameData.camemiHealth > 0 ? gameData.camemiHealth : vidaMax;
+        OnVidaChanged?.Invoke(vidaActual, vidaMax);
     }
 }

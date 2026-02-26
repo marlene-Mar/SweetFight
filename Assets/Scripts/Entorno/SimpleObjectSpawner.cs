@@ -115,4 +115,12 @@ public class SimpleObjectSpawner : MonoBehaviour
         return false;
     }
 
+    public void RespawnAll()
+    {
+        currentFlans = 0;
+        currentCandies = 0;
+        SpawnInitialFlanes();
+        SpawnInitialCandy();
+    }
+
 }
