@@ -21,7 +21,7 @@ public class UIManager : MonoBehaviour
     public GameObject Audio;
     public GameObject Controles;
     public GameObject canvasMenu;
-    public GameObject timerContainer;          // contenedor del timer del guardián
+    public GameObject timerContainer;
 
     // ==============================
     // HUD
@@ -29,14 +29,6 @@ public class UIManager : MonoBehaviour
     public GameObject HudPanel;
     public GameObject PausaPanel;
     private bool isGamePaused = false;
-    public Image barraVidaP;
-    public Image barraCandyCoins;
-    public Image barraVidaC;
-    public Image vida1Cheedor;
-    public Image vida2Cheedor;
-    public Image vida3Cheedor;
-    public Image barraVidaGuardian;
-    public Image barraVidaCamemi;
     public GameObject PanelCreditos;
 
     //==============================
@@ -55,7 +47,9 @@ public class UIManager : MonoBehaviour
     // ==============================
     // TIMER GUARDIÁN
     // ==============================
-    public TextMeshProUGUI timerText;          // TMP del timer del guardián
+    public TextMeshProUGUI timerText;
+    public GameObject timerContainerAliado;
+    public TextMeshProUGUI timerTextAliado;
 
     // ==============================
     // TIMER CAMEMI  ← NUEVO
@@ -288,8 +282,6 @@ public class UIManager : MonoBehaviour
         if (timerContainer != null) timerContainer.SetActive(false);
         if (timerContainerCamemi != null) timerContainerCamemi.SetActive(false);
 
-        // El diálogo final ya está implementado, se muestra primero
-        // Una vez termine el diálogo llama a MostrarCreditos()
     }
 
     public void MostrarCreditos()
@@ -418,7 +410,7 @@ public class UIManager : MonoBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-    // ========== TIMER CAMEMI (NUEVO) ==========
+    // ========== TIMER CAMEMI ==========
 
     public void ShowTimerCamemi()
     {
@@ -432,7 +424,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateTimerCamemi(float time)
     {
-        if (timerTextCamemi == null) return;     // usa su propio TMP, no timerText
+        if (timerTextCamemi == null) return;     
         int minutes = Mathf.FloorToInt(time / 60);
         int seconds = Mathf.FloorToInt(time % 60);
         timerTextCamemi.text = string.Format("{0:00}:{1:00}", minutes, seconds);
@@ -440,12 +432,29 @@ public class UIManager : MonoBehaviour
 
     // ========== TIMER ALIADO ==========
 
+    public void ShowTimerAliado()
+    {
+        if (timerContainerAliado != null) timerContainerAliado.SetActive(true);
+    }
+
+    public void HideTimerAliado()
+    {
+        if (timerContainerAliado != null) timerContainerAliado.SetActive(false);
+    }
+
+    // Este método recibe los dos parámetros del evento (tiempo restante y duración total)
+    private void HandleAllyTimerUpdate(float tiempoRestante, float duracionTotal)
+    {
+        UpdateTimerAliado(tiempoRestante);
+    }
+
+    // Este es el método que ya tenías, lo dejamos igual para que formatee los minutos/segundos
     public void UpdateTimerAliado(float time)
     {
-        if (timerText == null) return;
+        if (timerTextAliado == null) return;
         int minutes = Mathf.FloorToInt(time / 60);
         int seconds = Mathf.FloorToInt(time % 60);
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        timerTextAliado.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
     // =========AUDIO=========
@@ -476,5 +485,30 @@ public class UIManager : MonoBehaviour
     private float LinearToLog(float value)
     {
         return Mathf.Log10(value) * 20;
+    }
+
+    // ========== CONTINUAR PARTIDA ==========
+    public void ContinuarPartida()
+    {
+        // Revisamos si existe un archivo de guardado
+        if (SaveSystem.Instance != null && SaveSystem.Instance.SaveExists())
+        {
+            Debug.Log("Cargando partida guardada...");
+            MenuPrincipal.SetActive(false);
+            MenuPrincipalBase.SetActive(false);
+            HudPanel.SetActive(true);
+            PausaPanel.SetActive(false);
+
+            gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
+            Time.timeScale = 1f;
+
+            // Llamamos a nuestro nuevo sistema de carga asíncrono
+            SaveSystem.Instance.Load();
+        }
+        else
+        {
+            Debug.LogWarning("No hay partida guardada. Iniciando juego nuevo...");
+            Jugar(); // Si no hay partida, lo mandamos a un juego nuevo normal
+        }
     }
 }

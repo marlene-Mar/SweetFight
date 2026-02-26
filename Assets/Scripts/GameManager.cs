@@ -67,9 +67,11 @@ public class GameManager : MonoBehaviour
     {
         GuardianController.OnGuardianBecameAlly += IncrementGuardianCounter;
         GuardianController.OnGuardianLeftAlly += DecrementGuardianCounter;
-        SceneManager.sceneLoaded += OnSceneLoaded; // Re-buscar refs al cambiar escena
+        SceneManager.sceneLoaded += OnSceneLoaded;
         GuardianController.OnAllyTimerUpdated += UpdateAllyTimerUI;
         GuardianController.OnAllyTimerEnded += HideAllyTimerUI;
+        GuardianController.OnGuardianBecameAlly += HideGuardianHealthBar;
+        GuardianController.OnGuardianLeftAlly += HideGuardianHealthBar;
     }
 
     void OnDisable()
@@ -79,6 +81,8 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
         GuardianController.OnAllyTimerUpdated -= UpdateAllyTimerUI;
         GuardianController.OnAllyTimerEnded -= HideAllyTimerUI;
+        GuardianController.OnGuardianBecameAlly -= HideGuardianHealthBar;
+        GuardianController.OnGuardianLeftAlly -= HideGuardianHealthBar;
     }
 
     void Start()
@@ -88,6 +92,8 @@ public class GameManager : MonoBehaviour
         UpdateCandyBar();
         if (maxMessageText != null) maxMessageText.gameObject.SetActive(false);
         if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
+
+        HideGuardianHealthBar();
         UpdateGuardianAllyCounterUI();
     }
 
@@ -112,6 +118,15 @@ public class GameManager : MonoBehaviour
     void HideAllyTimerUI()  // ← solo una versión
     {
         if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
+    }
+
+    public void HideGuardianHealthBar()
+    {
+        if (healthGuardianBar != null)
+        {
+            // Apaga el contenedor padre (para que también se oculte el fondo y el marco de la barra)
+            healthGuardianBar.transform.parent.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>Busca y suscribe todas las referencias de vida en la escena activa.</summary>
@@ -171,7 +186,11 @@ public class GameManager : MonoBehaviour
     public void UpdateHealthBarGuardian(int vidaActual, int vidaMaxima)
     {
         if (healthGuardianBar != null)
+        {
+            // Activa el contenedor padre si estaba desactivado
+            healthGuardianBar.transform.parent.gameObject.SetActive(true);
             healthGuardianBar.fillAmount = (float)vidaActual / vidaMaxima;
+        }
     }
 
     void UpdateHealthBarCamemi(int vidaActual, int vidaMaxima)

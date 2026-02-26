@@ -110,15 +110,31 @@ public class SaveSystem : MonoBehaviour
         gameData.musicVolume = saveData.musicVolume;
         gameData.sfxVolume = saveData.sfxVolume;
 
-        // 3. Cargar escena y aplicar datos
-        if (!string.IsNullOrEmpty(saveData.lastScene))
-            SceneManager.LoadScene(saveData.lastScene);
-
-        GameManager.Instance?.LoadFromData();
-
-        Debug.Log("[SaveSystem] Partida cargada.");
+        // 3. Iniciar la corrutina para cargar la escena y luego aplicar datos
+        StartCoroutine(LoadSceneAndApplyData(saveData.lastScene));
     }
 
+    // NUEVA CORRUTINA: Espera a que la escena cargue antes de mover al jugador
+    private System.Collections.IEnumerator LoadSceneAndApplyData(string sceneName)
+    {
+        // Si hay una escena guardada y no es en la que ya estamos...
+        if (!string.IsNullOrEmpty(sceneName) && SceneManager.GetActiveScene().name != sceneName)
+        {
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+            // Esperar frame por frame hasta que la escena cargue por completo
+            while (!asyncLoad.isDone)
+            {
+                yield return null;
+            }
+        }
+
+        // Esperar un frame extra para que los métodos Start() de los personajes se ejecuten
+        yield return null;
+
+        // Ahora sí, asignar las posiciones y datos guardados a los objetos ya existentes
+        GameManager.Instance?.LoadFromData();
+        Debug.Log("[SaveSystem] Partida cargada y aplicada correctamente.");
+    }
     // ══════════════════════════════════════════
     //  UTILIDADES
     // ══════════════════════════════════════════

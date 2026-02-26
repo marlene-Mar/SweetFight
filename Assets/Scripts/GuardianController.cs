@@ -80,7 +80,8 @@ public class GuardianController : MonoBehaviour
         Talking,
         Combat,
         Ally,
-        AllyDefending
+        AllyDefending,
+        Dead
     }
     private GuardianState currentState;
 
@@ -274,6 +275,9 @@ public class GuardianController : MonoBehaviour
         canReceiveDamage = true;  // ← ¿llega aquí?
         attackTimer = 0f;
         isAttacking = false;
+
+        OnVidaChanged?.Invoke(currentHealth, maxHealth);
+
         Invoke(nameof(ExecuteAttack), 0.5f);
     }
 
@@ -343,9 +347,9 @@ public class GuardianController : MonoBehaviour
         canReceiveDamage = false;
         isAttacking = false;
 
-        // ✅ NO desactivar InCombat aquí — puede interrumpir la transición hacia Muerte
-        // animator.SetBool("InCombat", false); ← comenta o elimina esta línea temporalmente
+        currentState = GuardianState.Dead;
 
+        animator.SetBool("InCombat", false);
         animator.SetBool("Die", true); // ✅ Solo activar Die
 
         agent.isStopped = true;
@@ -397,7 +401,6 @@ public class GuardianController : MonoBehaviour
         isAttacking = false;
 
         currentHealth = maxHealth;
-        OnVidaChanged?.Invoke(currentHealth, maxHealth);
      
         // Cambiar tag para que otros guardianes no nos detecten como enemigos
         gameObject.tag = "GuardianAlly";
@@ -507,10 +510,17 @@ public class GuardianController : MonoBehaviour
         if (distanceToPlayer > followDistance)
         {
             agent.isStopped = false;
-            // Posicionar un poco detrás del jugador para no obstruir su camino
-            Vector3 followTarget = player.position - player.forward * (followDistance * 2f);
+            Vector3 followTarget = player.position - player.forward * (followDistance * 0.9f);
             agent.SetDestination(followTarget);
-            SetWalk(true);
+
+            if (!agent.pathPending && agent.remainingDistance <= 0.5f)
+            {
+                SetWalk(false);
+            }
+            else
+            {
+                SetWalk(true);
+            }
         }
         else
         {
@@ -519,6 +529,7 @@ public class GuardianController : MonoBehaviour
             LookAtPlayer();
         }
     }
+
     void EndAllyMode()
     {
         isAlly = false;
