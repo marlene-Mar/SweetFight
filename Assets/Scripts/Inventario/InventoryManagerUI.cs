@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+// Clase para manejar la UI del inventario: muestra los items en el panel de inventario
 public class InventoryManagerUI : MonoBehaviour
 {
     public GameObject itemSlotPrefab;

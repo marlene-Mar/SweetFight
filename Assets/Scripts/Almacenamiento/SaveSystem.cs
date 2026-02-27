@@ -6,9 +6,10 @@ public class SaveSystem : MonoBehaviour
 {
     public static SaveSystem Instance { get; private set; }
 
-    public Data gameData; // ScriptableObject asignado en Inspector
+    //ScriptableObject que contiene todos los datos del juego.
+    public Data gameData; 
 
-    private string SavePath => Path.Combine(Application.persistentDataPath, "savegame.json");
+    private string SavePath => Path.Combine(Application.persistentDataPath, "sweetfight.json");
 
     void Awake()
     {
@@ -24,7 +25,7 @@ public class SaveSystem : MonoBehaviour
         GameManager.Instance?.SaveToData();
         CombatManager.Instance?.SaveCombatStats();
 
-        // ✅ Renombrada a "snapshot" para evitar conflicto con el campo
+        // Crear un snapshot de los datos actuales para guardarlos
         SaveData snapshot = new SaveData
         {
             playerHealth = gameData.playerHealth,
@@ -40,7 +41,7 @@ public class SaveSystem : MonoBehaviour
             currentCandies = gameData.currentCandies,
             maxCandies = gameData.maxCandies,
             guardianAllyCount = gameData.guardianAllyCount,
-            guardians = gameData.guardians,   // ✅ guardianes
+            guardians = gameData.guardians,   
 
             flanCount = gameData.flanCount,
 
@@ -65,7 +66,7 @@ public class SaveSystem : MonoBehaviour
     }
 
     // ══════════════════════════════════════════
-    //  CARGAR
+    //  CARGAR 
     // ══════════════════════════════════════════
     public void Load()
     {
@@ -75,11 +76,10 @@ public class SaveSystem : MonoBehaviour
             return;
         }
 
-        // 1. Leer JSON y deserializar
+        // Leer el archivo JSON y convertirlo a SaveData
         string json = File.ReadAllText(SavePath);
         SaveData saveData = JsonUtility.FromJson<SaveData>(json);
 
-        // 2. Volcar SaveData → ScriptableObject
         gameData.playerHealth = saveData.playerHealth;
         gameData.playerMaxHealth = saveData.playerMaxHealth;
         gameData.playerPositionX = saveData.playerPositionX;
@@ -110,14 +110,14 @@ public class SaveSystem : MonoBehaviour
         gameData.musicVolume = saveData.musicVolume;
         gameData.sfxVolume = saveData.sfxVolume;
 
-        // 3. Iniciar la corrutina para cargar la escena y luego aplicar datos
+        // Cargar la escena guardada y luego aplicar los datos a los objetos ya existentes
         StartCoroutine(LoadSceneAndApplyData(saveData.lastScene));
     }
 
-    // NUEVA CORRUTINA: Espera a que la escena cargue antes de mover al jugador
+    // Este método se encarga de cargar la escena guardada y luego aplicar los datos a los objetos ya existentes en esa escena.
     private System.Collections.IEnumerator LoadSceneAndApplyData(string sceneName)
     {
-        // Si hay una escena guardada y no es en la que ya estamos...
+        // Si hay una escena guardada y es diferente a la actual, cargarla
         if (!string.IsNullOrEmpty(sceneName) && SceneManager.GetActiveScene().name != sceneName)
         {
             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
@@ -128,13 +128,13 @@ public class SaveSystem : MonoBehaviour
             }
         }
 
-        // Esperar un frame extra para que los métodos Start() de los personajes se ejecuten
         yield return null;
 
-        // Ahora sí, asignar las posiciones y datos guardados a los objetos ya existentes
+        // Cargar los datos en los objetos de la escena 
         GameManager.Instance?.LoadFromData();
         Debug.Log("[SaveSystem] Partida cargada y aplicada correctamente.");
     }
+
     // ══════════════════════════════════════════
     //  UTILIDADES
     // ══════════════════════════════════════════

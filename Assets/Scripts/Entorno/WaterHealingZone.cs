@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// Aplica curación al jugador cuando está en contacto con el agua
 public class WaterHealingZone : MonoBehaviour
 {
     [Header("Curación por agua")]
@@ -14,6 +15,7 @@ public class WaterHealingZone : MonoBehaviour
         tiempoSiguienteCuracion = Time.time + intervaloCuracion;
     }
 
+    // Aplica curación inicial al entrar en contacto con el agua y curación continua mientras el jugador permanezca en el agua
     void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
@@ -27,6 +29,7 @@ public class WaterHealingZone : MonoBehaviour
         }
     }
 
+    // Aplica curación continua mientras el jugador esté en contacto con el agua
     void OnTriggerStay(Collider other)
     {
         if (!other.CompareTag("Player")) return;
@@ -43,6 +46,7 @@ public class WaterHealingZone : MonoBehaviour
         }
     }
 
+    // Limpia la referencia a VidaJugador cuando el jugador salga del agua
     void OnTriggerExit(Collider other)
     {
         if (!other.CompareTag("Player")) return;

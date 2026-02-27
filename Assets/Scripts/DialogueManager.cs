@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 
+// Maneja los diálogos entre el jugador y los NPCs, incluyendo la UI y el cambio de cámaras
 public class DialogueManager : MonoBehaviour
 {
     [Header("UI")]
@@ -21,6 +22,7 @@ public class DialogueManager : MonoBehaviour
     public GameObject freeLookCamera;
     public GameObject dialogueCamera;
 
+    // Inicia un diálogo con un guardián específico
     public void StartGuardianDialogue(Dialogos dialogo, GuardianController guardian)
     {
         // Prevenir iniciar otro diálogo si ya hay uno activo
@@ -46,6 +48,7 @@ public class DialogueManager : MonoBehaviour
         DisplayLine();
     }
 
+    // Inicia un diálogo con Camemi
     public void StartCamemiDialogue(Dialogos dialogo, CamemiController camemi)
     {
         // Prevenir iniciar otro diálogo si ya hay uno activo
@@ -71,6 +74,7 @@ public class DialogueManager : MonoBehaviour
         DisplayLine();
     }
 
+    // Fuerza el cierre del diálogo
     public void ForceCloseDialogue()
     {
         if (freeLookCamera != null) freeLookCamera.SetActive(true);
@@ -85,6 +89,7 @@ public class DialogueManager : MonoBehaviour
         EnablePlayerControls();
     }
 
+    // Muestra la línea actual del diálogo
     void DisplayLine()
     {
         if (currentIndex < currentLines.Count)
@@ -98,12 +103,14 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
+    // Avanza a la siguiente línea del diálogo
     public void NextLine()
     {
         currentIndex++;
         DisplayLine();
     }
 
+    // Termina el diálogo y restaura el estado del juego
     void EndDialogue()
     {
         if (freeLookCamera != null) freeLookCamera.SetActive(true);
@@ -128,29 +135,32 @@ public class DialogueManager : MonoBehaviour
     }
 
 
-//═════════════════════════════════════════════════════════════════
-//  CONTROL DEL JUGADOR
-// ═════════════════════════════════════════════════════════════════
-void DisablePlayerControls()
-{
-    GameObject player = GameObject.FindGameObjectWithTag("Player");
-    if (player != null)
+    //══════════════════════════════
+    //  CONTROL DEL JUGADOR
+    // ══════════════════════════════
+
+    // Deshabilita los controles del jugador durante un diálogo
+    void DisablePlayerControls()
     {
-        playerController = player.GetComponent<PompompurinController>();
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerController = player.GetComponent<PompompurinController>();
+            if (playerController != null)
+            {
+                playerController.EnterDialogue();
+                playerController.enabled = false;
+            }
+        }
+    }
+
+    // Restaura los controles del jugador después de un diálogo
+    void EnablePlayerControls()
+    {
         if (playerController != null)
         {
-            playerController.EnterDialogue();
-            playerController.enabled = false;
+            playerController.ExitDialogue();
+                playerController.enabled = true;
+            }
         }
     }
-}
-
-void EnablePlayerControls()
-{
-    if (playerController != null)
-    {
-          playerController.ExitDialogue();
-            playerController.enabled = true;
-        }
-    }
-}

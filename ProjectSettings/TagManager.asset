@@ -19,14 +19,14 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Enemy
+  - Camemi
   - Water
   - UI
   - Terreno
   - Player
   - Lava
   - Guardian
-  - Camemi
+  - GuardianAlly
   - Volcan
   - 
   - 

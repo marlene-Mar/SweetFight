@@ -1,5 +1,6 @@
 using UnityEngine;
 
+//Cambio de cámara entre la cámara de movimiento libre y la cámara de diálogo
 public class CameraManager : MonoBehaviour
 {
     public GameObject freeLookCam;

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// Clase para manejar el inventario del jugador: actualmente solo flanes
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager instance;
@@ -10,10 +11,10 @@ public class InventoryManager : MonoBehaviour
     public InventoryManagerUI inventoryUI;
 
     [Header("Flan Config")]
-    public ItemData flanData;
+    public ItemData flanData; 
 
-    private List<Item> inventory = new List<Item>();
-    private VidaJugador vidaJugador;
+    private List<Item> inventory = new List<Item>(); // Lista de items en el inventario
+    private VidaJugador vidaJugador; // Referencia a la vida del jugador para curar al usar flan
 
     private void Awake()
     {
@@ -36,13 +37,14 @@ public class InventoryManager : MonoBehaviour
 
     private void Update()
     { 
-        // Consumir flan
+        // Consumir flan con la tecla F
         if (Input.GetKeyDown(KeyCode.F))
         {
             UseFlan();
         }
     }
 
+    // Resetea el inventario cuando muere el jugador o se reinicie la partida
     public void ResetInventory()
     {
         inventory.Clear();
@@ -50,9 +52,9 @@ public class InventoryManager : MonoBehaviour
         inventoryPanel.SetActive(false);
     }
 
-    // =============================
-    // BOTÓN INVENTARIO
-    // =============================
+    // =====================================================
+    // BOTÓN INVENTARIO: abrir/cerrar la barra de inventario
+    // =====================================================
     public void ToggleInventory()
     {
         if (inventory.Count == 0)
@@ -60,7 +62,6 @@ public class InventoryManager : MonoBehaviour
 
         inventoryPanel.SetActive(!inventoryPanel.activeSelf);
     }
-
 
     // =============================
     // AGREGAR ITEM
@@ -71,17 +72,17 @@ public class InventoryManager : MonoBehaviour
         {
             if (item.itemData == itemData)
             {
-                item.itemQuantity += quantity;
-                inventoryUI.RefreshInventoryUI(inventory);
+                item.itemQuantity += quantity; // Si ya existe el item, solo aumenta la cantidad
+                inventoryUI.RefreshInventoryUI(inventory); // Actualiza la UI
                 inventoryPanel.SetActive(true); // Mostrar cuando obtenga algo
                 return;
             }
         }
 
-        inventory.Add(new Item { itemData = itemData, itemQuantity = quantity });
+        inventory.Add(new Item { itemData = itemData, itemQuantity = quantity }); // Si no existe el item, lo agrega como nuevo
 
-        inventoryUI.RefreshInventoryUI(inventory);
-        inventoryPanel.SetActive(true);
+        inventoryUI.RefreshInventoryUI(inventory); // Actualiza la UI
+        inventoryPanel.SetActive(true); // Mostrar el panel de inventario cuando se agrega un nuevo item
     }
 
     // =============================
@@ -93,25 +94,25 @@ public class InventoryManager : MonoBehaviour
         {
             if (item.itemData == flanData && item.itemQuantity > 0)
             {
-                item.itemQuantity--;
+                item.itemQuantity--; // Disminuye la cantidad de flanes al usar uno
 
                 vidaJugador.Curar(5);
 
                 if (item.itemQuantity <= 0)
                 {
-                    inventory.Remove(item);
+                    inventory.Remove(item); // Si no quedan flanes, lo elimina del inventario
                 }
 
-                inventoryUI.RefreshInventoryUI(inventory);
+                inventoryUI.RefreshInventoryUI(inventory); // Actualiza la UI después de usar el flan
                 return;
             }
         }
     }
 
     [Header("Save Data")]
-    public Data gameData; // asígnalo en el Inspector
+    public Data gameData; 
 
-    // Llama esto antes de guardar la partida
+    //Guarda la cantidad de flanes en el inventario al guardar la partida
     public void SaveToData()
     {
         foreach (Item item in inventory)
@@ -125,7 +126,7 @@ public class InventoryManager : MonoBehaviour
         gameData.flanCount = 0; // si no hay flanes en inventario
     }
 
-    // Llama esto al cargar la partida
+    // Carga la cantidad de flanes en el inventario al cargar la partida
     public void LoadFromData()
     {
         if (gameData.flanCount > 0)

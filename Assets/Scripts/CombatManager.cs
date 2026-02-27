@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+// Maneja la lógica de combate, incluyendo el temporizador, el registro de golpes y la UI específica para los combates contra guardianes y Camemi
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance { get; private set; }
@@ -46,31 +47,33 @@ public class CombatManager : MonoBehaviour
         if (combatCamemiUI != null) combatCamemiUI.SetActive(false);
     }
 
-    // ── Inicio de combate ──────────────────────────
-
+    // Inicia un combate contra un guardián específico
     public void StartGuardianCombat(GuardianController guardian, PompompurinController pompompurin)
     {
-        Debug.Log($"StartGuardianCombat — timerRunning: {timerRunning}");  // ← ¿es true?
-        if (timerRunning) { Debug.LogWarning("CombatManager: Ya hay un combate activo."); return; }
+        Debug.Log($"StartGuardianCombat — timerRunning: {timerRunning}");  
+        if (timerRunning) { Debug.LogWarning("CombatManager: Ya hay un combate activo."); return; } // Verificar si ya hay un combate activo
 
         isCamemiCombat = false;
         currentEnemy = guardian;
         player = pompompurin;
         vidaJugador = player.GetComponent<VidaJugador>();
 
-        ResetStats();
-
+        ResetStats(); // Reiniciar estadísticas de combate
+        
+        // Activar UI de combate
         if (combatUI != null) combatUI.SetActive(true);
 
+        // Detener el movimiento del guardián al iniciar el combate
         var nav = currentEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (nav != null) nav.isStopped = true;
 
         player.inCombat = true;
         Debug.Log("¡Combate contra Guardián iniciado!");
-        StartCoroutine(CombatTimerRoutine(guardianCombatDuration));
-        UIManager.Instance?.ShowTimer();
+        StartCoroutine(CombatTimerRoutine(guardianCombatDuration)); // Iniciar el temporizador del combate
+        UIManager.Instance?.ShowTimer(); // Mostrar el temporizador en la UI
     }
 
+    // Inicia un combate contra Camemi
     public void StartCamemiCombat(CamemiController camemi, PompompurinController pompompurin)
     {
         if (timerRunning) { Debug.LogWarning("CombatManager: Ya hay un combate activo."); return; }

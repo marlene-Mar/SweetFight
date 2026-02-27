@@ -1,10 +1,13 @@
 using UnityEngine;
 
+// Se encarga de generar flanes y caramelos en superficies válidas al inicio del juego
 public class SimpleObjectSpawner : MonoBehaviour
 {
+    // Prefabs de flan y caramelo a instanciar
     public GameObject flanPrefab;
     public GameObject candyPrefab;
 
+    // Superficies válidas donde se pueden generar los objetos
     public MeshCollider[] validSurfaces;
 
     public int maxFlanes = 15;
@@ -21,6 +24,7 @@ public class SimpleObjectSpawner : MonoBehaviour
         SpawnInitialCandy();
     }
 
+    // Genera flanes en superficies válidas al inicio del juego
     void SpawnInitialFlanes()
     {
         int attempts = 0;
@@ -53,7 +57,7 @@ public class SimpleObjectSpawner : MonoBehaviour
             if (Vector3.Angle(hit.normal, Vector3.up) > maxSlopeAngle)
                 continue;
 
-            Quaternion alignToGround = Quaternion.FromToRotation(Vector3.up, hit.normal);
+            Quaternion alignToGround = Quaternion.FromToRotation(Vector3.up, hit.normal); 
             Quaternion randomYaw = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
 
             Vector3 spawnPos = hit.point + hit.normal * groundOffset;
@@ -63,6 +67,7 @@ public class SimpleObjectSpawner : MonoBehaviour
         }
     }
 
+    // Genera caramelos en superficies válidas al inicio del juego
     void SpawnInitialCandy()
     {
         int attempts = 0;
@@ -115,6 +120,7 @@ public class SimpleObjectSpawner : MonoBehaviour
         return false;
     }
 
+    // Reinicia el conteo de flanes y caramelos y vuelve a generar los objetos al inicio del juego
     public void RespawnAll()
     {
         currentFlans = 0;

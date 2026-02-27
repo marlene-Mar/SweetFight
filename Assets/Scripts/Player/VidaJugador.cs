@@ -10,6 +10,8 @@ public class VidaJugador : MonoBehaviour
 
     public Action<int, int> OnVidaChanged;
     public Action OnPlayerDead;
+    public Action OnDamageTaken;
+
 
     void Start()
     {

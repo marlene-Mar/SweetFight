@@ -6,20 +6,29 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    private float smoothSpeed = 3f;
+    public static GameManager Instance { get; private set; }
+
+    // ==========================================
+    // BARRAS DE ESTADO (UI)
+    // ==========================================
+    [Header("UI Bars")]
     public Image healthPompompurinBar;
     public Image healtCheedorBar;
     public Image healthGuardianBar;
     public Image healthCamemiBar;
     public Image candyCoinsBar;
-    private VidaJugador vidaJugador;
     public TextMeshProUGUI maxMessageText;
+
+    // ==========================================
+    // RECURSOS Y COLECCIONABLES
+    // ==========================================
+    [Header("Resources")]
     public int maxCandies = 30;
     private int currentCandies = 0;
 
-    // ══════════════════════════════════════════════════════════
-    //  CONTADOR DE GUARDIANES ALIADOS
-    // ══════════════════════════════════════════════════════════
+    // ==========================================
+    // GUARDIANES Y ALIADOS
+    // ==========================================
     [Header("Guardian Ally Counter")]
     public TextMeshProUGUI guardianAllyCounterText;
     public string counterPrefix = "x0";
@@ -28,15 +37,11 @@ public class GameManager : MonoBehaviour
 
     [Header("Ally Timer HUD")]
     public GameObject allyTimerContainer;
-    public TextMeshProUGUI allyTimerText;            
-    // ══════════════════════════════════════════════════════════
-    //  CAMEMI
-    // ══════════════════════════════════════════════════════════
-    private CamemiController camemiController;
+    public TextMeshProUGUI allyTimerText;
 
-    // ══════════════════════════════════════════════════════════
-    //  AUDIO
-    // ══════════════════════════════════════════════════════════
+    // ==========================================
+    // AUDIO
+    // ==========================================
     [Header("Audio")]
     public AudioSource musicSource;
     public AudioSource sfxSource;
@@ -44,12 +49,21 @@ public class GameManager : MonoBehaviour
     public AudioClip[] sfxCollection;
     public AudioMixer audioMixer;
 
-    public enum GameState { Menu, Gameplay, Pausa, Combat }
-    public static GameManager Instance { get; private set; }
+    // ==========================================
+    // DATOS Y REFERENCIAS INTERNAS
+    // ==========================================
+    [Header("Save Data")]
+    public Data gameData;
 
-    // ══════════════════════════════════════════════════════════
-    //  CICLO DE VIDA
-    // ══════════════════════════════════════════════════════════
+    public enum GameState { Menu, Gameplay, Pausa, Combat }
+
+    private VidaJugador vidaJugador;
+    private CamemiController camemiController;
+    private float smoothSpeed = 3f;
+
+    // ==========================================
+    // CICLO DE VIDA (Unity Events)
+    // ==========================================
     void Awake()
     {
         if (Instance == null)
@@ -90,6 +104,7 @@ public class GameManager : MonoBehaviour
         PlayMusicByState(GameState.Menu);
         ConnectReferences();
         UpdateCandyBar();
+
         if (maxMessageText != null) maxMessageText.gameObject.SetActive(false);
         if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
 
@@ -98,13 +113,93 @@ public class GameManager : MonoBehaviour
         UpdateGuardianAllyCounterUI();
     }
 
-    // Se llama automáticamente al cargar una escena nueva (por DontDestroyOnLoad)
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ConnectReferences();
     }
 
-    // Actualiza el UI del timer de aliado con el tiempo restante y total
+    // ==========================================
+    // CONEXIÓN DE REFERENCIAS
+    // ==========================================
+    void ConnectReferences()
+    {
+        // Jugador
+        VidaJugador foundVida = FindAnyObjectByType<VidaJugador>();
+        if (foundVida != null && foundVida != vidaJugador)
+        {
+            if (vidaJugador != null)
+            {
+                vidaJugador.OnVidaChanged -= UpdateHealthBarPlayer;
+                vidaJugador.OnPlayerDead -= Die;
+            }
+
+            vidaJugador = foundVida;
+            vidaJugador.OnVidaChanged += UpdateHealthBarPlayer;
+            vidaJugador.OnPlayerDead += Die;
+
+            UpdateHealthBarPlayer(vidaJugador.vidaActual, vidaJugador.vidaMaxima);
+            Debug.Log("[GameManager] VidaJugador conectada.");
+        }
+
+        // Guardián
+        GuardianController guardian = FindAnyObjectByType<GuardianController>();
+        if (guardian != null)
+        {
+            guardian.OnVidaChanged += UpdateHealthBarGuardian;
+            Debug.Log("[GameManager] GuardianController conectado.");
+        }
+
+        // Camemi
+        CamemiController camemi = FindAnyObjectByType<CamemiController>();
+        if (camemi != null && camemi != camemiController)
+        {
+            camemiController = camemi;
+            camemiController.OnVidaChanged += UpdateHealthBarCamemi;
+            UpdateHealthBarCamemi(camemiController.VidaActual, camemiController.VidaMax);
+            HideCamemiHealthBar();
+            Debug.Log("[GameManager] CamemiController conectado.");
+        }
+    }
+
+    // ==========================================
+    // GESTIÓN DE UI Y BARRAS DE VIDA
+    // ==========================================
+    void UpdateHealthBarPlayer(int vidaActual, int vidaMaxima)
+    {
+        if (healthPompompurinBar != null)
+            healthPompompurinBar.fillAmount = (float)vidaActual / vidaMaxima;
+    }
+
+    public void UpdateHealthBarGuardian(int vidaActual, int vidaMaxima)
+    {
+        if (healthGuardianBar != null)
+        {
+            healthGuardianBar.transform.parent.gameObject.SetActive(true);
+            healthGuardianBar.fillAmount = (float)vidaActual / vidaMaxima;
+        }
+    }
+
+    void UpdateHealthBarCamemi(int vidaActual, int vidaMaxima)
+    {
+        if (healthCamemiBar != null)
+        {
+            healthCamemiBar.transform.parent.gameObject.SetActive(true);
+            healthCamemiBar.fillAmount = (float)vidaActual / vidaMaxima;
+        }
+    }
+
+    public void HideGuardianHealthBar()
+    {
+        if (healthGuardianBar != null)
+            healthGuardianBar.transform.parent.gameObject.SetActive(false);
+    }
+
+    public void HideCamemiHealthBar()
+    {
+        if (healthCamemiBar != null)
+            healthCamemiBar.transform.parent.gameObject.SetActive(false);
+    }
+
     void UpdateAllyTimerUI(float remaining, float total)
     {
         if (allyTimerContainer != null) allyTimerContainer.SetActive(true);
@@ -116,104 +211,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void HideAllyTimerUI()  // ← solo una versión
+    void HideAllyTimerUI()
     {
         if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
     }
 
-    public void HideGuardianHealthBar()
-    {
-        if (healthGuardianBar != null)
-        {
-            // Apaga el contenedor padre (para que también se oculte el fondo y el marco de la barra)
-            healthGuardianBar.transform.parent.gameObject.SetActive(false);
-        }
-    }
-
-    /// <summary>Busca y suscribe todas las referencias de vida en la escena activa.</summary>
-    void ConnectReferences()
-    {
-        // ── Jugador ───────────────────────────────────────────
-        VidaJugador foundVida = FindAnyObjectByType<VidaJugador>();
-        if (foundVida != null && foundVida != vidaJugador)
-        {
-            // Desuscribir el anterior si existía
-            if (vidaJugador != null)
-            {
-                vidaJugador.OnVidaChanged -= UpdateHealthBarPlayer;
-                vidaJugador.OnPlayerDead -= Die;
-            }
-
-            vidaJugador = foundVida;
-            vidaJugador.OnVidaChanged += UpdateHealthBarPlayer;
-            vidaJugador.OnPlayerDead += Die;
-
-            // Forzar el fill inicial correcto
-            UpdateHealthBarPlayer(vidaJugador.vidaActual, vidaJugador.vidaMaxima);
-            Debug.Log("[GameManager] VidaJugador conectada.");
-        }
-
-        // ── Guardián ──────────────────────────────────────────
-        GuardianController guardian = FindAnyObjectByType<GuardianController>();
-        if (guardian != null)
-        {
-            guardian.OnVidaChanged += UpdateHealthBarGuardian;
-            Debug.Log("[GameManager] GuardianController conectado.");
-        }
-
-        // ── Camemi ────────────────────────────────────────────
-        CamemiController camemi = FindAnyObjectByType<CamemiController>();
-        if (camemi != null && camemi != camemiController)
-        {
-            camemiController = camemi;
-            camemiController.OnVidaChanged += UpdateHealthBarCamemi;
-
-            // Forzar el fill inicial
-            UpdateHealthBarCamemi(camemiController.VidaActual, camemiController.VidaMax);
-
-            HideCamemiHealthBar(); // <--- AÑADE ESTO AQUÍ para que no se quede prendida
-
-            Debug.Log("[GameManager] CamemiController conectado.");
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════
-    //  BARRAS DE VIDA
-    // ══════════════════════════════════════════════════════════
-    void UpdateHealthBarPlayer(int vidaActual, int vidaMaxima)
-    {
-        if (healthPompompurinBar != null)
-            healthPompompurinBar.fillAmount = (float)vidaActual / vidaMaxima;
-    }
-
-    public void UpdateHealthBarGuardian(int vidaActual, int vidaMaxima)
-    {
-        if (healthGuardianBar != null)
-        {
-            // Activa el contenedor padre si estaba desactivado
-            healthGuardianBar.transform.parent.gameObject.SetActive(true);
-            healthGuardianBar.fillAmount = (float)vidaActual / vidaMaxima;
-        }
-    }
-
-    void UpdateHealthBarCamemi(int vidaActual, int vidaMaxima)
-    {
-        if (healthCamemiBar != null)
-        {
-            // Activar el contenedor padre si está desactivado
-            healthCamemiBar.transform.parent.gameObject.SetActive(true);
-            healthCamemiBar.fillAmount = (float)vidaActual / vidaMaxima;
-        }
-    }
-
-    public void HideCamemiHealthBar()
-    {
-        if (healthCamemiBar != null)
-        {
-            healthCamemiBar.transform.parent.gameObject.SetActive(false);
-        }
-    }
-
+    // ==========================================
+    // LÓGICA DE JUEGO Y DAÑO
+    // ==========================================
     public void TakeDamage(int damage)
     {
         if (vidaJugador != null)
@@ -225,9 +230,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Over");
     }
 
-    // ══════════════════════════════════════════════════════════
-    //  CANDY COINS
-    // ══════════════════════════════════════════════════════════
     public void AddCandy(int amount)
     {
         if (currentCandies >= maxCandies) return;
@@ -252,9 +254,9 @@ public class GameManager : MonoBehaviour
             candyCoinsBar.fillAmount = (float)currentCandies / maxCandies;
     }
 
-    // ══════════════════════════════════════════════════════════
-    //  CONTADOR DE GUARDIANES ALIADOS
-    // ══════════════════════════════════════════════════════════
+    // ==========================================
+    // CONTADOR DE GUARDIANES
+    // ==========================================
     void IncrementGuardianCounter()
     {
         guardianAllyCount++;
@@ -284,9 +286,9 @@ public class GameManager : MonoBehaviour
         if (debugCounterLogs) Debug.Log("[GameManager] Contador de guardianes reiniciado.");
     }
 
-    // ══════════════════════════════════════════════════════════
-    //  AUDIO
-    // ══════════════════════════════════════════════════════════
+    // ==========================================
+    // AUDIO
+    // ==========================================
     public void PlayMusicByState(GameState state)
     {
         int index = 0;
@@ -316,19 +318,16 @@ public class GameManager : MonoBehaviour
     public void SFXVolume(float volume) => audioMixer.SetFloat("SFXVolume", volume);
     public void MasterVolume(float volume) => audioMixer.SetFloat("GeneralVolume", volume);
 
-
-    [Header("Save Data")]
-    public Data gameData;
-
+    // ==========================================
+    // SISTEMA DE GUARDADO (Save/Load)
+    // ==========================================
     public void SaveToData()
     {
-        // ── Player ────────────────────────────────────────────────
         if (vidaJugador != null)
         {
             gameData.playerHealth = vidaJugador.vidaActual;
             gameData.playerMaxHealth = vidaJugador.vidaMaxima;
 
-            // ✅ Posición del jugador, no del GameManager
             PompompurinController pompom = vidaJugador.GetComponent<PompompurinController>();
             if (pompom != null)
             {
@@ -338,24 +337,18 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // ── Candies ───────────────────────────────────────────────
         gameData.currentCandies = currentCandies;
         gameData.guardianAllyCount = guardianAllyCount;
 
-        // ── Guardianes ────────────────────────────────────────────
         GuardianController[] guardianes = FindObjectsByType<GuardianController>(FindObjectsSortMode.None);
         for (int i = 0; i < Mathf.Min(guardianes.Length, gameData.guardians.Length); i++)
             gameData.guardians[i] = guardianes[i].GetSaveData();
 
-        // ── Audio ─────────────────────────────────────────────────
         audioMixer.GetFloat("GeneralVolume", out gameData.masterVolume);
         audioMixer.GetFloat("MusicVolume", out gameData.musicVolume);
         audioMixer.GetFloat("SFXVolume", out gameData.sfxVolume);
 
-        // ── Escena ────────────────────────────────────────────────
         gameData.lastScene = SceneManager.GetActiveScene().name;
-
-        // ── Inventario ────────────────────────────────────────────
         InventoryManager.instance?.SaveToData();
 
         Debug.Log("[GameManager] Partida guardada.");
@@ -363,14 +356,12 @@ public class GameManager : MonoBehaviour
 
     public void LoadFromData()
     {
-        // ── Player vida ───────────────────────────────────────────
         if (vidaJugador != null)
         {
             vidaJugador.vidaMaxima = gameData.playerMaxHealth;
             vidaJugador.vidaActual = gameData.playerHealth;
             vidaJugador.NotificarCambio();
 
-            // ✅ Restaurar posición del jugador
             PompompurinController pompom = vidaJugador.GetComponent<PompompurinController>();
             if (pompom != null)
             {
@@ -387,15 +378,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // ── Candies ───────────────────────────────────────────────
         currentCandies = gameData.currentCandies;
         UpdateCandyBar();
 
-        // ── Contador guardianes ───────────────────────────────────
         guardianAllyCount = gameData.guardianAllyCount;
         UpdateGuardianAllyCounterUI();
 
-        // ── Estado guardianes ─────────────────────────────────────
         GuardianController[] guardianes = FindObjectsByType<GuardianController>(FindObjectsSortMode.None);
         for (int i = 0; i < Mathf.Min(guardianes.Length, gameData.guardians.Length); i++)
         {
@@ -403,12 +391,10 @@ public class GameManager : MonoBehaviour
                 guardianes[i].LoadSaveData(gameData.guardians[i]);
         }
 
-        // ── Audio ─────────────────────────────────────────────────
         Musicvolume(gameData.musicVolume);
         SFXVolume(gameData.sfxVolume);
         MasterVolume(gameData.masterVolume);
 
-        // ── Inventario ────────────────────────────────────────────
         InventoryManager.instance?.LoadFromData();
 
         Debug.Log("[GameManager] Partida cargada.");

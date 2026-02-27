@@ -308,10 +308,7 @@ PrefabInstance:
       addedObject: {fileID: 3287035202303811124}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1330493978367693631}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: -9133579622043187379}
+      addedObject: {fileID: 3167584445352018067}
   m_SourcePrefab: {fileID: 100100000, guid: 8374e12f18f28664781e79de0926e693, type: 3}
 --- !u!1 &2822950619388431275 stripped
 GameObject:
@@ -350,7 +347,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 2822950619388431275}
   m_Enabled: 1
   m_AgentTypeID: 658490984
-  m_Radius: 0.9
+  m_Radius: 1
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -359,7 +356,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 1.7
+  m_Height: 3.3
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -393,22 +390,8 @@ MonoBehaviour:
   allyDetectionRange: 10
   enemyLayer:
     serializedVersion: 2
-    m_Bits: 1032
---- !u!114 &1330493978367693631
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2822950619388431275}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e80cb4ce251ef944bfb832f338dbf53, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCDialogue
-  dialogueManager: {fileID: 0}
-  dialogo: {fileID: 11400000, guid: 3b59d81a6034056419819ca51b8723fd, type: 2}
---- !u!143 &-9133579622043187379
+    m_Bits: 8
+--- !u!143 &3167584445352018067
 CharacterController:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -299,6 +299,7 @@ public class CamemiController : MonoBehaviour
 
         Debug.Log($"[Camemi] Vida restante: {vidaActual}");
 
+        Debug.Log("Camemi recibió daño del Guardián: " + damage);
         if (vidaActual <= 0)
             Die();
     }
