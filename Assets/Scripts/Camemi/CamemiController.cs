@@ -2,73 +2,88 @@
 using UnityEngine.AI;
 using System.Collections;
 
+/// <summary>
+/// Controlador principal para el NPC/Enemigo "Camemi". 
+/// Gestiona estados de patrulla, diálogo, combate y ciclo de vida.
+/// </summary>
 public class CamemiController : MonoBehaviour
 {
+    // ── ENUMS Y ESTADOS ─────────────────────────────────
     public enum CamemiState { Patrolling, Greeting, Talking, Combat }
+    private CamemiState currentState;
 
+    // ── REFERENCIAS DE COMPONENTES ──────────────────────
     [Header("Referencias")]
     private NavMeshAgent agent;
     private Animator animator;
     public Transform player;
     public LayerMask PlayerMask;
     public DialogueManager dialogueManager;
+    public GameObject pompompurin;
+    private PompompurinController playerController;
+
+    [Header("Diálogos")]
     public Dialogos dialogoEncuentro;
     public Dialogos dialogoFinal;     // Al agotarse el tiempo
     public Dialogos dialogoVictoria;  // Al ser derrotada por el jugador
-    public GameObject pompompurin;
-    private Vector3 posicionInicial;
-    private Quaternion rotacionInicial;
 
+    // ── SISTEMA DE COMBATE ──────────────────────────────
     [Header("Combate")]
     public CombatManager combatManager;
-    public CamemiHitbox[] hitboxesManos;  // 2 colliders de puños
-    public CamemiHitbox[] hitboxesPatas;  // 2 colliders de patas
+    public CamemiHitbox[] hitboxesManos;  // Colliders para ataques rápidos
+    public CamemiHitbox[] hitboxesPatas;  // Colliders para ataques fuertes
     private int comboCounter = 0;
 
     [Header("Tiempos de ataque")]
     public float attackCooldown = 1.8f;   // Tiempo entre combos
-    public float tiempoActivacion = 0.3f; // Delay antes de activar hitbox
-    public float tiempoHitbox = 0.35f;    // Cuánto tiempo está activa la hitbox
+    public float tiempoActivacion = 0.3f; // Delay antes de activar hitbox (anticipación)
+    public float tiempoHitbox = 0.35f;    // Duración de la ventana de daño
 
     private float attackTimer;
     private bool isAttacking;
-    private bool canReceiveDamage;
     public bool puedeHacerDaño = false;
-
-    [Header("Vida")]
-    public int vidaMax = 100;
-    private int vidaActual;
-    private bool isDead = false;
-
-    // Evento y propiedades públicas para que GameManager pueda suscribirse
-    public System.Action<int, int> OnVidaChanged;
-    public int VidaActual => vidaActual;
-    public int VidaMax => vidaMax;
 
     [Header("Daños")]
     public int damageGolpe1 = 12;
     public int damageGolpe2 = 22;
 
+    // ── SISTEMA DE VIDA ─────────────────────────────────
+    [Header("Vida")]
+    public int vidaMax = 100;
+    private int vidaActual;
+    private bool isDead = false;
+    private bool canReceiveDamage;
+
+    // Evento para actualizar UI (GameManager/HUD)
+    public System.Action<int, int> OnVidaChanged;
+    public int VidaActual => vidaActual;
+    public int VidaMax => vidaMax;
+
+    // ── NAVEGACIÓN Y DETECCIÓN ──────────────────────────
     [Header("Patrulla")]
     public float patrolRadius = 10f;
     public float waitTimeBetweenPoints = 2f;
+    private Vector3 posicionInicial;
+    private Quaternion rotacionInicial;
+    private float waitTimer;
 
     [Header("Detección")]
     public float detectionRange = 5f;
     public float combatDistance = 2f;
-
-    private float waitTimer;
-    private CamemiState currentState;
     private bool canInteract = true;
-    private PompompurinController playerController;
+
+    // ── MÉTODOS DE INICIALIZACIÓN ───────────────────────
 
     void Start()
     {
+        // Guardar estado inicial para Resets
         posicionInicial = transform.position;
         rotacionInicial = transform.rotation;
+
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
 
+        // Localizar al jugador en la escena
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -81,7 +96,7 @@ public class CamemiController : MonoBehaviour
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
         currentState = CamemiState.Patrolling;
 
-        // Inyectar daño en hitboxes para que nunca queden en 0
+        // Inicializar daño en los scripts de las hitboxes
         foreach (var h in hitboxesManos) if (h != null) h.damage = damageGolpe1;
         foreach (var h in hitboxesPatas) if (h != null) h.damage = damageGolpe2;
 
@@ -90,11 +105,11 @@ public class CamemiController : MonoBehaviour
         MoveToRandomPoint();
     }
 
+    // ── BUCLE PRINCIPAL ─────────────────────────────────
+
     void Update()
     {
-        if (isDead) return;
-
-        if (player == null) return;
+        if (isDead || player == null) return;
 
         switch (currentState)
         {
@@ -115,10 +130,11 @@ public class CamemiController : MonoBehaviour
         }
     }
 
-    // ── PATRULLA ──────────────────────────────────
+    // ── LÓGICA DE PATRULLA ──────────────────────────────
 
     void PatrolBehaviour()
     {
+        // Si llegó al destino
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
             animator.SetBool("Walk", false);
@@ -144,19 +160,18 @@ public class CamemiController : MonoBehaviour
             agent.SetDestination(hit.position);
     }
 
-    // ── DETECCIÓN ─────────────────────────────────
+    // ── LÓGICA DE DETECCIÓN Y DIÁLOGO ───────────────────
 
     void DetectPlayer()
     {
         if (!canInteract) return;
+        // Si el jugador entra en el rango de detección, inicia charla
         if (Vector3.Distance(transform.position, player.position) <= detectionRange)
         {
             canInteract = false;
             StartDialogue();
         }
     }
-
-    // ── DIÁLOGO ───────────────────────────────────
 
     void StartDialogue()
     {
@@ -180,6 +195,7 @@ public class CamemiController : MonoBehaviour
             return;
         }
 
+        // Transición de Diálogo a Combate
         playerController?.ExitDialogue();
         playerController?.StartCombatAfterDialogue();
         combatManager?.StartCamemiCombat(this, playerController);
@@ -187,18 +203,17 @@ public class CamemiController : MonoBehaviour
         StartCombat();
     }
 
-    // ── COMBATE ───────────────────────────────────
+    // ── LÓGICA DE COMBATE ───────────────────────────────
 
     void StartCombat()
     {
         currentState = CamemiState.Combat;
-        animator.SetLayerWeight(1, 1f);
+        animator.SetLayerWeight(1, 1f); // Activar capa de animación de combate
         animator.SetBool("Combat", true);
         canReceiveDamage = true;
         attackTimer = attackCooldown;
         isAttacking = false;
 
-        // FIX: forzar refresco de barra de vida de Camemi al iniciar combate
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
     }
 
@@ -210,12 +225,14 @@ public class CamemiController : MonoBehaviour
 
         if (distance > combatDistance)
         {
+            // Acercarse al jugador
             agent.isStopped = false;
             agent.SetDestination(player.position);
             animator.SetBool("Walk", true);
         }
         else
         {
+            // En rango de ataque
             agent.isStopped = true;
             animator.SetBool("Walk", false);
 
@@ -235,6 +252,7 @@ public class CamemiController : MonoBehaviour
         isAttacking = true;
         comboCounter++;
 
+        // Alternancia de ataques: 2 rápidos, 1 fuerte
         if (comboCounter <= 2)
         {
             animator.SetTrigger("Attack1");
@@ -256,7 +274,7 @@ public class CamemiController : MonoBehaviour
         isAttacking = false;
     }
 
-    // ── HITBOXES ──────────────────────────────────
+    // ── GESTIÓN DE DAÑO Y HITBOXES ──────────────────────
 
     IEnumerator ActivarHitboxes(CamemiHitbox[] grupo)
     {
@@ -277,15 +295,16 @@ public class CamemiController : MonoBehaviour
         foreach (var h in hitboxesPatas) if (h != null) h.gameObject.SetActive(false);
     }
 
-    // ── DAÑO RECIBIDO ─────────────────────────────
-
     public bool CanReceiveDamage() => canReceiveDamage;
 
+    /// <summary>
+    /// Recibe daño genérico y gestiona la probabilidad de bloqueo.
+    /// </summary>
     public void TakeDamage(int damage)
     {
         if (!canReceiveDamage) return;
 
-        // Bloqueo solo si tiene más del 30% de vida
+        // Probabilidad de bloqueo (30%) si tiene suficiente vida
         float porcentajeVida = (float)vidaActual / vidaMax;
         if (porcentajeVida > 0.3f && Random.value > 0.7f)
         {
@@ -297,37 +316,68 @@ public class CamemiController : MonoBehaviour
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
         animator.SetTrigger("RecibirGolpe");
 
-        Debug.Log($"[Camemi] Vida restante: {vidaActual}");
-
-        Debug.Log("Camemi recibió daño del Guardián: " + damage);
-        if (vidaActual <= 0)
-            Die();
+        if (vidaActual <= 0) Die();
     }
 
+    /// <summary>
+    /// Daño específico provocado por la entidad 'Guardian'.
+    /// </summary>
     public void TakeDamageFromGuardian(int damage)
     {
-        // 1. Si ya está muerta, no hacer nada
         if (isDead) return;
-
-        // 2. Si no hay combate activo (ej. están en diálogo), ignorar el daño
         if (CombatManager.Instance != null && !CombatManager.Instance.IsInCombat) return;
 
-        // 3. Aplicar el daño
         vidaActual = Mathf.Max(0, vidaActual - damage);
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
-
         animator.SetTrigger("RecibirGolpe");
 
-        Debug.Log($"[Camemi] Recibió {damage} de daño del Guardián! Vida: {vidaActual}/{vidaMax}");
+        if (vidaActual <= 0) Die();
+    }
 
-        // 4. Revisar si murió por este golpe
-        if (vidaActual <= 0)
+    // ── ESTADO DE MUERTE Y FINALIZACIÓN ────────────────
+
+    void Die()
+    {
+        if (isDead) return;
+        isDead = true;
+        canReceiveDamage = false;
+        isAttacking = false;
+        currentState = CamemiState.Patrolling;
+
+        animator.SetLayerWeight(1, 0f);
+        animator.SetBool("Combat", false);
+        animator.SetBool("Walk", false);
+        animator.SetTrigger("Morir");
+
+        agent.isStopped = true;
+        DisableAllHitboxes();
+        StopAllCoroutines();
+
+        CombatManager.Instance?.EndCombat(true);
+        playerController?.ExitCombat();
+
+        StartCoroutine(FinalSequence());
+    }
+
+    IEnumerator FinalSequence()
+    {
+        yield return new WaitForSeconds(2.5f);
+
+        if (dialogoVictoria != null && dialogueManager != null)
+            dialogueManager.StartCamemiDialogue(dialogoVictoria, this);
+
+        yield return new WaitForSeconds(5f);
+
+        // Mostrar créditos y cerrar el juego
+        if (UIManager.Instance != null)
         {
-            Die();
+            UIManager.Instance.MostrarCreditos();
+            yield return new WaitForSecondsRealtime(5f);
+            UIManager.Instance.TerminarJuegoDesdeCreditos();
         }
     }
 
-    // ── UTILS PÚBLICOS ────────────────────────────
+    // ── UTILIDADES PÚBLICAS Y EVENTOS ──────────────────
 
     public void EnterCombat() => animator.SetBool("Combat", true);
     public void ExitCombat() => animator.SetBool("Combat", false);
@@ -350,8 +400,6 @@ public class CamemiController : MonoBehaviour
         MoveToRandomPoint();
         canInteract = true;
     }
-
-    // ── TIMEOUT DE COMBATE ───────────────────────
 
     public void OnCombatTimeOut()
     {
@@ -376,58 +424,7 @@ public class CamemiController : MonoBehaviour
         ReturnToPatrol();
     }
 
-    // ── MUERTE ────────────────────────────────────
-
-    void Die()
-    {
-        if (isDead) return; // ✅ Evita llamarse dos veces
-        isDead = true;
-        canReceiveDamage = false;
-        isAttacking = false;
-        currentState = CamemiState.Patrolling; // ✅ Saca del estado Combat para detener CombatBehaviour
-
-        Debug.Log("Camemi ha sido derrotada");
-        animator.SetLayerWeight(1, 0f);
-        animator.SetBool("Combat", false);
-        animator.SetBool("Walk", false);
-        animator.SetTrigger("Morir");
-
-        agent.isStopped = true;
-        DisableAllHitboxes();
-        StopAllCoroutines(); // ✅ Detiene cualquier ataque en curso
-
-        CombatManager.Instance?.EndCombat(true);
-
-        // ✅ Notificar al jugador que salga del combate
-        playerController?.ExitCombat();
-
-        StartCoroutine(FinalSequence());
-    }
-
-    IEnumerator FinalSequence()
-    {
-        // ✅ Esperar animación de muerte
-        yield return new WaitForSeconds(2.5f);
-
-        // ✅ Mostrar diálogo de victoria
-        if (dialogoVictoria != null && dialogueManager != null)
-            dialogueManager.StartCamemiDialogue(dialogoVictoria, this);
-
-        // ✅ Esperar que termine el diálogo
-        yield return new WaitForSeconds(5f);
-
-        // ✅ Mostrar créditos
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.MostrarCreditos();
-            yield return new WaitForSecondsRealtime(5f);
-            UIManager.Instance.TerminarJuegoDesdeCreditos();
-        }
-        else
-            Debug.LogError("UIManager.Instance no encontrado!");
-    }
-
-    // ── SAVE DATA ─────────────────────────────────
+    // ── PERSISTENCIA DE DATOS (SAVE/LOAD) ───────────────
 
     [Header("Save Data")]
     public Data gameData;
@@ -435,7 +432,7 @@ public class CamemiController : MonoBehaviour
     public void SaveToData()
     {
         gameData.camemiHealth = vidaActual;
-        gameData.camemiDefeated = vidaActual <= 0;
+        gameData.camemiDefeated = (vidaActual <= 0);
     }
 
     public void LoadFromData()
@@ -449,6 +446,9 @@ public class CamemiController : MonoBehaviour
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
     }
 
+    /// <summary>
+    /// Restablece a Camemi a su estado original cuando se reinicia
+    /// </summary>
     public void ResetCamemi()
     {
         isDead = false;
@@ -460,7 +460,6 @@ public class CamemiController : MonoBehaviour
         isAttacking = false;
         canInteract = true;
 
-        // Reiniciamos las animaciones por completo
         animator.Rebind();
         animator.Update(0f);
 

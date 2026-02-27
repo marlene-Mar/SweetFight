@@ -24872,10 +24872,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   dialogueManager: {fileID: 765349473}
+  pompompurin: {fileID: 439080068}
   dialogoEncuentro: {fileID: 11400000, guid: 876f1f658b5d94d469afe182c553ad84, type: 2}
   dialogoFinal: {fileID: 11400000, guid: 2258108380e264342a818f14d9576dc4, type: 2}
   dialogoVictoria: {fileID: 11400000, guid: 9f2e3206c58941d4e9ccb5b2e137db21, type: 2}
-  pompompurin: {fileID: 439080068}
   combatManager: {fileID: 1401320890}
   hitboxesManos:
   - {fileID: 2137384604}
@@ -24887,9 +24887,9 @@ MonoBehaviour:
   tiempoActivacion: 0.2
   tiempoHitbox: 0.35
   "puedeHacerDa\xF1o": 0
-  vidaMax: 100
   damageGolpe1: 12
   damageGolpe2: 22
+  vidaMax: 100
   patrolRadius: 6.5
   waitTimeBetweenPoints: 3.5
   detectionRange: 5

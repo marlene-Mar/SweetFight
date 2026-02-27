@@ -14,53 +14,53 @@ public class Data : ScriptableObject
     public float playerPositionZ;
 
     // ==============================
-    // Camemi Data  (boss principal)
+    // Camemi Data  
     // ==============================
     public int camemiHealth;
-    public bool camemiDefeated;        // para no reiniciar el boss si ya murió
-    public bool camemiDialogueShown;   // evita repetir el diálogo de encuentro
+    public bool camemiDefeated;        // para no reiniciar el boss si ya murio
+    public bool camemiDialogueShown;   // evita repetir el dialogo de encuentro
 
     // ==============================
     // Guardian Data 
     // ==============================
     public int guardianHealth;
 
-    // Estado de cada guardián (índice 0, 1, 2)
+    // Estado de cada guardian 
     public GuardianSaveData[] guardians = new GuardianSaveData[3];
 
     [System.Serializable]
     public class GuardianSaveData
     {
-        public float posX, posY, posZ;   // posición actual
-        public bool isAlly;              // ¿es aliado en este momento?
+        public float posX, posY, posZ;   // posicionn actual
+        public bool isAlly;              // Es aliado en este momento?
         public float allyTimeRemaining;  // tiempo restante como aliado
-        public bool onCooldown;          // ¿está en cooldown post-aliado?
+        public bool onCooldown;          
     }
 
     // ==============================
     // Game State Data
     // ==============================
-    public int currentCandies;         // renombrado desde currentPlayerInventory, más claro
-    public int maxCandies;             // por si cambia según progreso
+    public int currentCandies;         // renombrado desde currentPlayerInventory, mas claro
+    public int maxCandies;             // por si cambia segun progreso
     public int guardianAllyCount;      // currrentGuardianAllies (corrige typo)
 
     // ==============================
-    // Combat Stats  (útil para pantalla de resultados)
+    // Combat Stats 
     // ==============================
     public int lastCombatPlayerHits;
     public int lastCombatEnemyHits;
     public int lastCombatDamageDealt;
     public int lastCombatDamageTaken;
-    public float lastCombatTimeRemaining; // cuánto tiempo sobró
+    public float lastCombatTimeRemaining; 
 
     // ==============================
-    // Scene / Checkpoint
+    // Scene / Checkpointw
     // ==============================
-    public string lastScene;           // nombre de la escena guardada
+    public string lastScene;          
     public bool isGameOver;
 
     // ==============================
-    // Audio Settings  (persisten entre sesiones)
+    // Audio Settings  
     // ==============================
     public float masterVolume;
     public float musicVolume;

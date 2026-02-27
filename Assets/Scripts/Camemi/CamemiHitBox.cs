@@ -33,8 +33,6 @@ public class CamemiHitbox : MonoBehaviour
         CombatManager.Instance?.OnCamemiHit(damage);
     }
 
-    // Respaldo para cuando el jugador ya está DENTRO del collider al activarse
-    // Ocurre frecuentemente en combos rápidos y cuando el personaje se mueve
     private void OnTriggerStay(Collider other)
     {
         if (hasHit) return;

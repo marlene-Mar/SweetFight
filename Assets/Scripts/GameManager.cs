@@ -381,15 +381,24 @@ public class GameManager : MonoBehaviour
         currentCandies = gameData.currentCandies;
         UpdateCandyBar();
 
-        guardianAllyCount = gameData.guardianAllyCount;
-        UpdateGuardianAllyCounterUI();
-
+        // ── Estado guardianes ─────────────────────────────────────
         GuardianController[] guardianes = FindObjectsByType<GuardianController>(FindObjectsSortMode.None);
         for (int i = 0; i < Mathf.Min(guardianes.Length, gameData.guardians.Length); i++)
         {
             if (gameData.guardians[i] != null)
                 guardianes[i].LoadSaveData(gameData.guardians[i]);
         }
+
+        // ── Contador guardianes 
+        guardianAllyCount = 0;
+        foreach (var g in guardianes)
+        {
+            if (g.CompareTag("GuardianAlly"))
+            {
+                guardianAllyCount++;
+            }
+        }
+        UpdateGuardianAllyCounterUI();
 
         Musicvolume(gameData.musicVolume);
         SFXVolume(gameData.sfxVolume);
