@@ -430,33 +430,6 @@ public class UIManager : MonoBehaviour
         timerTextCamemi.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-    // ========== TIMER ALIADO ==========
-
-    public void ShowTimerAliado()
-    {
-        if (timerContainerAliado != null) timerContainerAliado.SetActive(true);
-    }
-
-    public void HideTimerAliado()
-    {
-        if (timerContainerAliado != null) timerContainerAliado.SetActive(false);
-    }
-
-    // Este método recibe los dos parámetros del evento (tiempo restante y duración total)
-    private void HandleAllyTimerUpdate(float tiempoRestante, float duracionTotal)
-    {
-        UpdateTimerAliado(tiempoRestante);
-    }
-
-    // Este es el método que ya tenías, lo dejamos igual para que formatee los minutos/segundos
-    public void UpdateTimerAliado(float time)
-    {
-        if (timerTextAliado == null) return;
-        int minutes = Mathf.FloorToInt(time / 60);
-        int seconds = Mathf.FloorToInt(time % 60);
-        timerTextAliado.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-    }
-
     // =========AUDIO=========
 
     public void IncreaseMusic() => ChangeMusicVolume(1);
