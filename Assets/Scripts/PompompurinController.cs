@@ -23,8 +23,8 @@ public class PompompurinController : MonoBehaviour
 
     public Collider[] manoColliders;
 
-    public int damageGolpe1 = 25;
-    public int damageGolpe2 = 30;
+    public int damageGolpe1 = 12;
+    public int damageGolpe2 = 18;
 
     public float combatRange = 4.0f;
     public LayerMask enemyLayer;

@@ -733,15 +733,30 @@ public class GuardianWeaponCollider : MonoBehaviour
         }
         else
         {
-            // Modo aliado: golpear solo a enemigos (nunca a otros guardianes) [FIX 9]
-            if (other.CompareTag("Enemy") &&
-                !other.CompareTag("Guardian") &&
-                !other.CompareTag("Camemi") &&
-                !other.CompareTag("GuardianAlly"))
+            // Modo aliado: detectar a Camemi o a enemigos normales
+            CamemiController camemi = other.GetComponent<CamemiController>() ?? other.GetComponentInParent<CamemiController>();
+            
+            bool isGenericEnemy = other.CompareTag("Camemi") && 
+                                 !other.CompareTag("Guardian") && 
+                                 !other.CompareTag("GuardianAlly");
+
+            // Si golpeamos a Camemi o a un enemigo genérico
+            if (camemi != null || isGenericEnemy)
             {
-                Debug.Log($"Guardián aliado golpeó a {other.name}.");
-                guardianController.NotifyWeaponHit();
                 hasHit = true;
+                guardianController.NotifyWeaponHit();
+
+                if (camemi != null && camemi.CanReceiveDamage())
+                {
+                    // ¡Aplicamos el daño real a Camemi!
+                    camemi.TakeDamage(damage);
+                    Debug.Log($"¡Guardián aliado atacó a Camemi infligiendo {damage} de daño!");
+                }
+                else if (isGenericEnemy)
+                {
+                    Debug.Log($"Guardián aliado golpeó a un enemigo ({other.name}).");
+                    // Nota: Si en el futuro agregas enemigos comunes con vida, llamarías a su TakeDamage aquí
+                }
             }
         }
     }

@@ -383,7 +383,11 @@ public class CamemiController : MonoBehaviour
 
         // ✅ Mostrar créditos
         if (UIManager.Instance != null)
+        {
             UIManager.Instance.MostrarCreditos();
+            yield return new WaitForSecondsRealtime(5f);
+            UIManager.Instance.TerminarJuegoDesdeCreditos();
+        }
         else
             Debug.LogError("UIManager.Instance no encontrado!");
     }

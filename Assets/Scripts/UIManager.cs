@@ -289,11 +289,13 @@ public class UIManager : MonoBehaviour
         if (PanelCreditos != null)
         {
             MenuPrincipalBase.SetActive(false);
+            HudPanel.SetActive(false);
             PanelCreditos.SetActive(true);
+
+            Time.timeScale = 0f;
         }
     }
 
-    // ✅ Botón "Volver al menú" en la pantalla de créditos
     public void TerminarJuegoDesdeCreditos()
     {
         if (PanelCreditos != null)
@@ -308,13 +310,16 @@ public class UIManager : MonoBehaviour
         gameManager.PlayMusicByState(GameManager.GameState.Menu);
         Time.timeScale = 1f;
 
-        // Al terminar el diálogo final de Camemi
-        UIManager.Instance.MostrarCreditos();
     }
 
-    // ✅ Reset completo — usado tanto por muerte del jugador como por fin del juego
     public void ResetearJuegoCompleto()
     {
+        DialogueManager dialogueManager = FindFirstObjectByType<DialogueManager>();
+        if (dialogueManager != null)
+        {
+            dialogueManager.ForceCloseDialogue();
+        }
+
         // Jugador
         PompompurinController pompom = FindFirstObjectByType<PompompurinController>();
         VidaJugador vida = FindFirstObjectByType<VidaJugador>();

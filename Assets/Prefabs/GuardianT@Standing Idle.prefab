@@ -299,9 +299,6 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2270485276769548524}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 7529985208054572168}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
@@ -312,37 +309,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1330493978367693631}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -9133579622043187379}
   m_SourcePrefab: {fileID: 100100000, guid: 8374e12f18f28664781e79de0926e693, type: 3}
 --- !u!1 &2822950619388431275 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8374e12f18f28664781e79de0926e693, type: 3}
   m_PrefabInstance: {fileID: 3164987583936657146}
   m_PrefabAsset: {fileID: 0}
---- !u!143 &2270485276769548524
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2822950619388431275}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Height: 3.3
-  m_Radius: 0.9
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
-  m_Center: {x: -0.1, y: 1.7, z: 0}
 --- !u!136 &7529985208054572168
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -418,7 +393,7 @@ MonoBehaviour:
   allyDetectionRange: 10
   enemyLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 1032
 --- !u!114 &1330493978367693631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,6 +408,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCDialogue
   dialogueManager: {fileID: 0}
   dialogo: {fileID: 11400000, guid: 3b59d81a6034056419819ca51b8723fd, type: 2}
+--- !u!143 &-9133579622043187379
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2822950619388431275}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 3.3
+  m_Radius: 0.9
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: -0.1, y: 1.7, z: 0}
 --- !u!4 &3199510723708162321 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8374e12f18f28664781e79de0926e693, type: 3}
