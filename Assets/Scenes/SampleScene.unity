@@ -5770,6 +5770,33 @@ MonoBehaviour:
   characterRenderer: {fileID: 490338176}
   hitColor: {r: 1, g: 0.02745098, b: 0.44313726, a: 1}
   duration: 0.8
+--- !u!54 &439080087
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439080068}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &439296027
 GameObject:
   m_ObjectHideFlags: 0
@@ -6200,7 +6227,7 @@ PrefabInstance:
       addedObject: {fileID: 1147968796}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1147968805}
+      addedObject: {fileID: 1147968807}
     - targetCorrespondingSourceObject: {fileID: -6170625038081293824, guid: c2ccd2421a482dc4ab35357503c22952, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1335041422}
@@ -16224,6 +16251,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 439080085}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 439080087}
     - targetCorrespondingSourceObject: {fileID: -4728426434207774260, guid: 5b411a088bd062446911d78bd9bb8b30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1444064633}
@@ -24839,7 +24869,7 @@ MonoBehaviour:
   player: {fileID: 439080074}
   PlayerMask:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 128
   dialogueManager: {fileID: 765349473}
   dialogoEncuentro: {fileID: 11400000, guid: 876f1f658b5d94d469afe182c553ad84, type: 2}
   dialogoFinal: {fileID: 11400000, guid: 2258108380e264342a818f14d9576dc4, type: 2}
@@ -24863,34 +24893,32 @@ MonoBehaviour:
   waitTimeBetweenPoints: 3.5
   detectionRange: 5
   combatDistance: 2
-  gameData: {fileID: 0}
---- !u!54 &1147968805
-Rigidbody:
+  gameData: {fileID: 11400000, guid: 8f5da0f5972db1d4aa082523dd283006, type: 2}
+--- !u!143 &1147968807
+CharacterController:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1147968790}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2.35
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 1.15, z: 0}
 --- !u!1 &1153943589
 GameObject:
   m_ObjectHideFlags: 0

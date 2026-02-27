@@ -304,6 +304,25 @@ public class CamemiController : MonoBehaviour
             Die();
     }
 
+    // NUEVO: Función exclusiva para el daño del aliado
+    public void TakeDamageFromGuardian(int damage)
+    {
+        if (isDead) return;
+        // Si quieres que el Guardián le haga daño incluso antes de hablar con ella,
+        // quita la siguiente línea. Si quieres que solo la dañe en combate, déjala.
+        if (!canReceiveDamage) return;
+
+        vidaActual = Mathf.Max(0, vidaActual - damage);
+        OnVidaChanged?.Invoke(vidaActual, vidaMax);
+
+        animator.SetTrigger("RecibirGolpe");
+
+        Debug.Log($"[Camemi] Recibió {damage} de daño del Guardián! Vida: {vidaActual}/{vidaMax}");
+
+        if (vidaActual <= 0)
+            Die();
+    }
+
     // ── UTILS PÚBLICOS ────────────────────────────
 
     public void EnterCombat() => animator.SetBool("Combat", true);

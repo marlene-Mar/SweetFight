@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// Clase que se encarga de detectar la colision con los flanes y sumar flanes al jugador
 public class FlanCollection : MonoBehaviour
 {
     private int flanCount = 0;

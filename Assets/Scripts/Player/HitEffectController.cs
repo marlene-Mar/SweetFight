@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+// Clase que se encarga de controlar el efecto visual al recibir un golpe en el jugador
 public class HitEffectController : MonoBehaviour
 {
     [Header("Referencias")]
@@ -26,8 +27,7 @@ public class HitEffectController : MonoBehaviour
         }
     }
 
-
-
+    // Método público para activar el efecto de golpe
     public void TriggerHit()
     {
         Debug.Log("¡Golpe recibido! Activando efectos...");
@@ -35,6 +35,7 @@ public class HitEffectController : MonoBehaviour
         _coroutine = StartCoroutine(FadeOut(duration));
     }
 
+    // Coroutine que maneja la transición del efecto de golpe
     private IEnumerator FadeOut(float dur)
     {
         float elapsed = 0f;
@@ -54,6 +55,7 @@ public class HitEffectController : MonoBehaviour
             }
             yield return null;
         }
+        
         // Limpieza al final
         foreach (Material m in _materials) m.SetFloat("_HitAmount", 0f);
     }

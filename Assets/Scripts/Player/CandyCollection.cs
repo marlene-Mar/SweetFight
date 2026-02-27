@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Clase que se encarga de detectar la colision con los caramelos y sumar puntos al jugador
 public class CandyCollection : MonoBehaviour
 {
     private GameManager gameManager ;
@@ -8,14 +9,14 @@ public class CandyCollection : MonoBehaviour
     {
         gameManager= FindObjectOfType<GameManager>();
         if (gameManager == null)
-            Debug.LogError("NO se encontró CandyManager en la escena");
+            Debug.LogError("NO se encontro CandyManager en la escena");
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Candy"))
         {
-            Debug.Log("Detecté candy");
+            Debug.Log("Detecta candy");
             gameManager.AddCandy(1);
             Destroy(other.gameObject);
         }

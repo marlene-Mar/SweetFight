@@ -51,7 +51,6 @@ public class PompompurinController : MonoBehaviour
 
     // ──────────────────────────────────────────────────────────────────────
     // INICIO
-    // Se ejecuta una sola vez al activarse el objeto en la escena.
     // ──────────────────────────────────────────────────────────────────────
     void Start()
     {
@@ -237,7 +236,7 @@ public class PompompurinController : MonoBehaviour
 
     /// <summary>
     /// Activa el modo combate inmediatamente después de un diálogo.
-    /// Usado cuando una cutscene/diálogo introduce directamente un combate.
+    /// Usado cuando un diálogo introduce directamente un combate.
     /// </summary>
     public void StartCombatAfterDialogue()
     {
