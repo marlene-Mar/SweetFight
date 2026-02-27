@@ -97,3 +97,19 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+*.exr
+*.exe
+*.ecm
+Assets/Scenes/SampleScene/LightingData.asset
+Assets/Scenes/SampleScene/Lightmap-0_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-10_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-11_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-1_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-2_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-3_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-4_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-5_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-6_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-7_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-8_comp_light.exr
+Assets/Scenes/SampleScene/Lightmap-9_comp_light.exr

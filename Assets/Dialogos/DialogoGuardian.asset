@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8b92160e0221f64ea0f6d17b3836199, type: 3}
+  m_Name: DialogoGuardian
+  m_EditorClassIdentifier: Assembly-CSharp::Dialogos
+  conversationLines:
+  - speakerName: "Guard\xEDan"
+    dialogueLine: "Hola, escuch\xE9 que hab\xEDa un desconocido, te estaba buscando"
+  - speakerName: Pompompurin
+    dialogueLine: "Hola, soy Pompompurin. Vengo en b\xFAsqueda de Camemi"
+  - speakerName: "Guard\xEDan"
+    dialogueLine: "Esa rata astuta, est\xE1 asustando a los habitantes, no puedo
+      derrotarlo solo."
+  - speakerName: Pompompurin
+    dialogueLine: Vengo a derrotarlo.
+  - speakerName: "Guard\xEDan"
+    dialogueLine: "JAJA, \xBFT\xFA?, si te ves m\xE1s adorable que yo. Te ayudar\xE9
+      si me derrotas."
+  - speakerName: Pompompurin
+    dialogueLine: "\xA1Hecho!"

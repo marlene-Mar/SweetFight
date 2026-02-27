@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8b92160e0221f64ea0f6d17b3836199, type: 3}
+  m_Name: DialogoFinal
+  m_EditorClassIdentifier: Assembly-CSharp::Dialogos
+  conversationLines:
+  - speakerName: Camemi
+    dialogueLine: "Me ganaste esta vez, pero volver\xE9..."
+  - speakerName: Pompompurin
+    dialogueLine: "\xA1\xBFQu\xE9?! Ese no era el trato"
+  - speakerName: Camemi
+    dialogueLine: "\xBFCu\xE1l trato? "
