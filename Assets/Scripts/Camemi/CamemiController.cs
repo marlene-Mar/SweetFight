@@ -304,14 +304,15 @@ public class CamemiController : MonoBehaviour
             Die();
     }
 
-    // NUEVO: Función exclusiva para el daño del aliado
     public void TakeDamageFromGuardian(int damage)
     {
+        // 1. Si ya está muerta, no hacer nada
         if (isDead) return;
-        // Si quieres que el Guardián le haga daño incluso antes de hablar con ella,
-        // quita la siguiente línea. Si quieres que solo la dañe en combate, déjala.
-        if (!canReceiveDamage) return;
 
+        // 2. Si no hay combate activo (ej. están en diálogo), ignorar el daño
+        if (CombatManager.Instance != null && !CombatManager.Instance.IsInCombat) return;
+
+        // 3. Aplicar el daño
         vidaActual = Mathf.Max(0, vidaActual - damage);
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
 
@@ -319,8 +320,11 @@ public class CamemiController : MonoBehaviour
 
         Debug.Log($"[Camemi] Recibió {damage} de daño del Guardián! Vida: {vidaActual}/{vidaMax}");
 
+        // 4. Revisar si murió por este golpe
         if (vidaActual <= 0)
+        {
             Die();
+        }
     }
 
     // ── UTILS PÚBLICOS ────────────────────────────

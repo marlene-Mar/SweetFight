@@ -15,14 +15,12 @@ public class CamemiHitbox : MonoBehaviour
     {
         // Resetear siempre al activarse para garantizar detección en combos rápidos
         hasHit = false;
-        Debug.Log($"[Hitbox] {gameObject.name} ACTIVADA");
     }
 
     private void OnDisable()
     {
         // Reset también al desactivar, por si se reactiva muy rápido en un combo
         hasHit = false;
-        Debug.Log($"[Hitbox] {gameObject.name} DESACTIVADA");
     }
 
     private void OnTriggerEnter(Collider other)

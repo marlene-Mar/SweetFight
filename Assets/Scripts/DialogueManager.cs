@@ -13,7 +13,7 @@ public class DialogueManager : MonoBehaviour
     private List<Line> currentLines;
     private int currentIndex;
 
-    private bool isDialogueActive = false;
+    public bool isDialogueActive = false; 
     private GuardianController currentGuardian = null;
     private CamemiController currentCamemi = null;
     private PompompurinController playerController;
@@ -134,6 +134,10 @@ public class DialogueManager : MonoBehaviour
         isDialogueActive = false;
     }
 
+    public bool IsDialogueActive()
+    {
+        return isDialogueActive;
+    }
 
     //══════════════════════════════
     //  CONTROL DEL JUGADOR

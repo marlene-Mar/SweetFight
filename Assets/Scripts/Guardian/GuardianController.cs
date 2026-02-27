@@ -61,6 +61,8 @@ public class GuardianController : MonoBehaviour
     private float allyTimer;
     private bool isAlly;
     private Transform currentEnemyTarget;
+    private CamemiController camemiTarget;
+    private bool playerInDialogueWithCamemi = false;
 
     // ── Evento de vida (para UI / GameManager) ────────────────────
     public System.Action<int, int> OnVidaChanged;
@@ -69,7 +71,7 @@ public class GuardianController : MonoBehaviour
     public static System.Action OnGuardianBecameAlly;
     public static System.Action OnGuardianLeftAlly;
 
-    public static System.Action<float, float> OnAllyTimerUpdated;  // (tiempoRestante, duracionTotal)
+    public static System.Action<float, float> OnAllyTimerUpdated; 
     public static System.Action OnAllyTimerEnded;
 
     // ── Estado interno ────────────────────────────────────────────
@@ -276,7 +278,7 @@ public class GuardianController : MonoBehaviour
     {
         Debug.Log($"{name} StartCombat() — canReceiveDamage será true");
         animator.SetBool("InCombat", true);
-        canReceiveDamage = true;  // ← ¿llega aquí?
+        canReceiveDamage = true; 
         attackTimer = 0f;
         isAttacking = false;
 
@@ -292,7 +294,7 @@ public class GuardianController : MonoBehaviour
         attackTimer += Time.deltaTime;
         if (attackTimer >= timeBetweenAttacks)
         {
-            attackTimer = 0f;   // resetear ANTES de llamar ExecuteAttack
+            attackTimer = 0f;  
             ExecuteAttack();
         }
     }
@@ -308,23 +310,46 @@ public class GuardianController : MonoBehaviour
         Debug.Log($"{name}: ejecutando ataque.");
 
         StartCoroutine(ActivateWeaponCollider(weaponActivationDelay, weaponActiveDuration));
-        // FIX: AttackCooldown solo controla isAttacking, el timer ya se reseteó arriba
         StartCoroutine(AttackCooldown());
     }
 
     IEnumerator ActivateWeaponCollider(float delay, float duration)
     {
+        
         yield return new WaitForSeconds(delay);
 
         if (weaponCollider != null)
             weaponCollider.GetComponent<GuardianWeaponCollider>()?.ResetHit();
-
         EnableWeaponCollider();
+
+        if (isAlly)
+        {
+            // Crea un punto de impacto a 1.2 unidades frente al guardián
+            Vector3 puntoDeAtaque = transform.position + transform.forward * 1.2f;
+
+            // Crea una esfera invisible de radio 2 y guarda todo lo que toca
+            Collider[] objetosGolpeados = Physics.OverlapSphere(puntoDeAtaque, 2f);
+
+            foreach (var hit in objetosGolpeados)
+            {
+                // Buscamos si alguno de los objetos golpeados es Camemi
+                CamemiController camemi = hit.GetComponent<CamemiController>() ?? hit.GetComponentInParent<CamemiController>();
+
+                if (camemi != null)
+                {
+                    // Le aplicamos el daño directo ignorando sus bloqueos
+                    camemi.TakeDamageFromGuardian(weaponDamage);
+                    Debug.Log($"<color=green>¡GOLPE DEFINITIVO!</color> El Guardián le bajó {weaponDamage} a Camemi.");
+                    break; 
+                }
+            }
+        }
+
         yield return new WaitForSeconds(duration);
         DisableWeaponCollider();
     }
 
-    // Solo libera el flag; el timer ya fue reseteado en CombatBehaviour/DefendPlayerBehaviour
+
     IEnumerator AttackCooldown()
     {
         yield return new WaitForSeconds(timeBetweenAttacks);
@@ -354,7 +379,7 @@ public class GuardianController : MonoBehaviour
         currentState = GuardianState.Dead;
 
         animator.SetBool("InCombat", false);
-        animator.SetBool("Die", true); // ✅ Solo activar Die
+        animator.SetBool("Die", true); 
 
         agent.isStopped = true;
         StopAllCoroutines();
@@ -368,18 +393,14 @@ public class GuardianController : MonoBehaviour
 
     IEnumerator BecomeAllyAfterDeathAnimation(float deathAnimDuration)
     {
-        // ✅ Esperar a que la animación de muerte realmente termine
-        // en lugar de un tiempo fijo, esperamos a que el Animator salga del estado Die
-        yield return null; // esperar un frame para que el Animator procese el trigger
+        yield return null; 
 
-        // Esperar mientras sigue en el estado Die
         yield return new WaitUntil(() =>
         {
             AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-            return !stateInfo.IsName("Muerte"); // ✅ usa el nombre exacto del estado en tu Animator
+            return !stateInfo.IsName("Die"); 
         });
 
-        // ✅ Pequeño delay extra para que la transición de salida se vea bien
         yield return new WaitForSeconds(0.3f);
 
         BecomeAlly();
@@ -434,6 +455,16 @@ public class GuardianController : MonoBehaviour
         {
             // Ignorar a otros guardianes (propios o enemigos convertidos)
             if (hit.CompareTag("Guardian") || hit.CompareTag("GuardianAlly")) continue;
+
+            CamemiController camemiCheck = hit.GetComponent<CamemiController>() ?? hit.GetComponentInParent<CamemiController>();
+            if (camemiCheck != null)
+            {
+                if (camemiCheck.VidaActual <= 0 || (CombatManager.Instance != null && !CombatManager.Instance.IsInCombat))
+                {
+                    continue; 
+                }
+            }
+
             nearestEnemy = hit.transform;
             break;
         }
@@ -457,9 +488,28 @@ public class GuardianController : MonoBehaviour
         TickAllyTimer();
         if (allyTimer >= allyDuration) { EndAllyMode(); return; }
 
-        // Objetivo destruido o salió de rango → volver a seguir al jugador
-        if (currentEnemyTarget == null ||
-            Vector3.Distance(transform.position, currentEnemyTarget.position) > allyDetectionRange * 1.5f)
+        bool shouldDropTarget = false;
+
+        // 1. Verificar si el objetivo se destruyó o salió de rango
+        if (currentEnemyTarget == null || Vector3.Distance(transform.position, currentEnemyTarget.position) > allyDetectionRange * 1.5f)
+        {
+            shouldDropTarget = true;
+        }
+        else
+        {
+            // 2. Verificar si el objetivo es Camemi y acaba de morir o el combate terminó
+            CamemiController camemiCheck = currentEnemyTarget.GetComponent<CamemiController>() ?? currentEnemyTarget.GetComponentInParent<CamemiController>();
+            if (camemiCheck != null)
+            {
+                if (camemiCheck.VidaActual <= 0 || (CombatManager.Instance != null && !CombatManager.Instance.IsInCombat))
+                {
+                    shouldDropTarget = true;
+                }
+            }
+        }
+
+        // Si se cumple alguna condición para soltar al objetivo, regresar con el jugador
+        if (shouldDropTarget)
         {
             currentEnemyTarget = null;
             currentState = GuardianState.Ally;
@@ -468,6 +518,7 @@ public class GuardianController : MonoBehaviour
             attackTimer = 0f;
             isAttacking = false;
             agent.isStopped = false;  // Importante: reactivar el movimiento
+            SetWalk(false);
             return;
         }
 
@@ -655,6 +706,36 @@ public class GuardianController : MonoBehaviour
     public int GetCurrentHealth() => currentHealth;
     public bool IsAlly() => isAlly;
     public bool CanReceiveDamage() => canReceiveDamage;
+
+    /// <summary>Llamar desde CamemiController cuando empieza el diálogo con el jugador.</summary>
+    public void OnPlayerEnterCamemiDialogue()
+    {
+        if (!isAlly) return;
+        playerInDialogueWithCamemi = true;
+        currentEnemyTarget = null;
+        currentState = GuardianState.Ally;
+        agent.isStopped = true;
+        SetWalk(false);
+        animator.SetBool("InCombat", false);
+        if (weaponObject != null) weaponObject.SetActive(false);
+        Debug.Log($"{name}: jugador en diálogo con Camemi, esperando en idle...");
+    }
+
+    /// <summary>Llamar desde CamemiController cuando termina el diálogo. El guardián va a atacar a Camemi.</summary>
+    public void OnPlayerExitCamemiDialogue()
+    {
+        if (!isAlly) return;
+        playerInDialogueWithCamemi = false;
+        if (camemiTarget != null && camemiTarget.gameObject.activeInHierarchy)
+        {
+            currentEnemyTarget = camemiTarget.transform;
+            currentState = GuardianState.AllyDefending;
+            animator.SetBool("InCombat", true);
+            if (weaponObject != null) weaponObject.SetActive(true);
+            agent.isStopped = false;
+            Debug.Log($"{name}: diálogo terminado, atacando a Camemi.");
+        }
+    }
 
     // ═════════════════════════════════════════════════════════════
     //  SAVE / LOAD
