@@ -94,6 +94,7 @@ public class GameManager : MonoBehaviour
         if (allyTimerContainer != null) allyTimerContainer.SetActive(false);
 
         HideGuardianHealthBar();
+        HideCamemiHealthBar();
         UpdateGuardianAllyCounterUI();
     }
 
@@ -165,11 +166,13 @@ public class GameManager : MonoBehaviour
         if (camemi != null && camemi != camemiController)
         {
             camemiController = camemi;
-            // Suscribirse al evento de vida de Camemi
             camemiController.OnVidaChanged += UpdateHealthBarCamemi;
 
             // Forzar el fill inicial
             UpdateHealthBarCamemi(camemiController.VidaActual, camemiController.VidaMax);
+
+            HideCamemiHealthBar(); // <--- AÑADE ESTO AQUÍ para que no se quede prendida
+
             Debug.Log("[GameManager] CamemiController conectado.");
         }
     }
@@ -200,6 +203,14 @@ public class GameManager : MonoBehaviour
             // Activar el contenedor padre si está desactivado
             healthCamemiBar.transform.parent.gameObject.SetActive(true);
             healthCamemiBar.fillAmount = (float)vidaActual / vidaMaxima;
+        }
+    }
+
+    public void HideCamemiHealthBar()
+    {
+        if (healthCamemiBar != null)
+        {
+            healthCamemiBar.transform.parent.gameObject.SetActive(false);
         }
     }
 

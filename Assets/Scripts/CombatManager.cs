@@ -97,10 +97,6 @@ public class CombatManager : MonoBehaviour
 
     // ── Registro de golpes ─────────────────────────
 
-    /// <summary>
-    /// Llamado cuando Pompompurin golpea a Camemi.
-    /// Aplica daño Y registra estadísticas.
-    /// </summary>
     public void OnPlayerHit(int damage)
     {
         if (!timerRunning) return;
@@ -108,19 +104,12 @@ public class CombatManager : MonoBehaviour
         playerHitsLanded++;
         totalDamageDealt += damage;
 
-        // Solo aplica daño a Camemi.
-        // El guardián recibe TakeDamage directo desde PompompurinHandCollider
-        // para que funcione independientemente de qué guardián esté en currentEnemy.
         if (isCamemiCombat)
             currentCamemi?.TakeDamage(damage);
 
         Debug.Log($"[Jugador] golpeó → daño: {damage} | total infligido: {totalDamageDealt}");
     }
 
-    /// <summary>
-    /// Solo registra estadísticas del golpe al guardián.
-    /// El daño ya fue aplicado directamente en PompompurinHandCollider.
-    /// </summary>
     public void OnPlayerHitGuardian(int damage)
     {
         if (!timerRunning) return;
@@ -131,7 +120,6 @@ public class CombatManager : MonoBehaviour
         Debug.Log($"[Jugador→Guardián] daño: {damage} | total infligido: {totalDamageDealt}");
     }
 
-    /// <summary>Llamado cuando el Guardián golpea al jugador.</summary>
     public void OnGuardianHit(int damage)
     {
         if (!timerRunning) return;

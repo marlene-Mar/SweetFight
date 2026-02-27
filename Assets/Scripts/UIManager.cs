@@ -195,6 +195,11 @@ public class UIManager : MonoBehaviour
         HudPanel.SetActive(true);
         PausaPanel.SetActive(false);
 
+        HideTimer();
+        HideTimerCamemi();
+        if (gameManager != null && gameManager.allyTimerContainer != null)
+            gameManager.allyTimerContainer.SetActive(false);
+
         gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
         Time.timeScale = 1f;
     }
@@ -320,7 +325,13 @@ public class UIManager : MonoBehaviour
             dialogueManager.ForceCloseDialogue();
         }
 
-        // Jugador
+        CombatManager combatManager = FindFirstObjectByType<CombatManager>();
+        if (combatManager != null) combatManager.EndCombat(false);
+
+        CamemiController camemi = FindFirstObjectByType<CamemiController>();
+        if (camemi != null) camemi.ResetCamemi();
+        
+
         PompompurinController pompom = FindFirstObjectByType<PompompurinController>();
         VidaJugador vida = FindFirstObjectByType<VidaJugador>();
 
@@ -476,6 +487,11 @@ public class UIManager : MonoBehaviour
             MenuPrincipalBase.SetActive(false);
             HudPanel.SetActive(true);
             PausaPanel.SetActive(false);
+
+            HideTimer();
+            HideTimerCamemi();
+            if (gameManager != null && gameManager.allyTimerContainer != null)
+                gameManager.allyTimerContainer.SetActive(false);
 
             gameManager.PlayMusicByState(GameManager.GameState.Gameplay);
             Time.timeScale = 1f;

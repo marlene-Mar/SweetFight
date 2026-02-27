@@ -16,6 +16,8 @@ public class CamemiController : MonoBehaviour
     public Dialogos dialogoFinal;     // Al agotarse el tiempo
     public Dialogos dialogoVictoria;  // Al ser derrotada por el jugador
     public GameObject pompompurin;
+    private Vector3 posicionInicial;
+    private Quaternion rotacionInicial;
 
     [Header("Combate")]
     public CombatManager combatManager;
@@ -62,6 +64,8 @@ public class CamemiController : MonoBehaviour
 
     void Start()
     {
+        posicionInicial = transform.position;
+        rotacionInicial = transform.rotation;
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
 
@@ -169,6 +173,13 @@ public class CamemiController : MonoBehaviour
     public void EndDialogue()
     {
         animator.SetBool("InDialogue", false);
+
+        if (isDead || currentState == CamemiState.Patrolling)
+        {
+            playerController?.ExitDialogue();
+            return;
+        }
+
         playerController?.ExitDialogue();
         playerController?.StartCombatAfterDialogue();
         combatManager?.StartCamemiCombat(this, playerController);
@@ -412,5 +423,31 @@ public class CamemiController : MonoBehaviour
         }
         vidaActual = gameData.camemiHealth > 0 ? gameData.camemiHealth : vidaMax;
         OnVidaChanged?.Invoke(vidaActual, vidaMax);
+    }
+
+    public void ResetCamemi()
+    {
+        isDead = false;
+        vidaActual = vidaMax;
+        OnVidaChanged?.Invoke(vidaActual, vidaMax);
+
+        currentState = CamemiState.Patrolling;
+        canReceiveDamage = false;
+        isAttacking = false;
+        canInteract = true;
+
+        // Reiniciamos las animaciones por completo
+        animator.Rebind();
+        animator.Update(0f);
+
+        agent.Warp(posicionInicial);
+        transform.rotation = rotacionInicial;
+
+        gameObject.SetActive(true);
+        DisableAllHitboxes();
+        StopAllCoroutines();
+
+        agent.isStopped = false;
+        MoveToRandomPoint();
     }
 }
