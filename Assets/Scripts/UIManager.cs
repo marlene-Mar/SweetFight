@@ -505,4 +505,9 @@ public class UIManager : MonoBehaviour
             Jugar(); // Si no hay partida, lo mandamos a un juego nuevo normal
         }
     }
+
+    public void ToggleInventory()
+    {
+        InventoryManager.instance?.ToggleInventory();
+    }
 }
